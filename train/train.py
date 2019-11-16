@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     # model, content_losses = transfer_model(pt, style_img)
     model(output_glyph.unsqueeze(0).transpose(1,3))
+    
     print(content_losses)
     # content_score = 0
     # for i, sl in enumerate(content_losses):
