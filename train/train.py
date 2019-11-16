@@ -4,6 +4,7 @@ from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import argparse
 import time
+import matplotlib.pylab as plt
 
 # for pretrained model
 import torchvision.models as models
@@ -55,9 +56,35 @@ if __name__ == "__main__":
                         help='number of epochs for training',
                         type=int,
                         default=10)
+    parser.add_argument('--batch_size',
+                        help='number of batches',
+                        type=int,
+                        default=1)
+    parser.add_argument('--color_path',
+                        help='',
+                        type=str,
+                        default='mini_datasets/Capitals_colorGrad64/')
+    parser.add_argument('--noncolor_path',
+                        help='',
+                        type=str,
+                        default='mini_datasets/Capitals64/')
     args = parser.parse_args()
 
-    print(args.epochs)
+    for batch_idx, (data, target) in enumerate(load_glyph_dataset(args, True)):
+        print (batch_idx)
+        data = data.transpose(2,1).transpose(3,2) # B x 64 x (64 x 26) x 3
+        print (data.size())
+        position_list = alphabet_position('gle')
+        glyph_list = []
+        for p in position_list:
+            glyph_list.append(data[0][:,64*(p-1):64*p,:])
+        output_glyph = torch.cat (glyph_list, dim=1) # 이거 갖다 쓰면 되긴함.
+        plt.imshow (torch.cat(glyph_list, dim=1))
+        if (batch_idx == 1):
+            break
+    plt.imsave('test.png', output_glyph)
+    # print(output_glyph)
+    # print(args.epochs)
 
     # Data loader
 
