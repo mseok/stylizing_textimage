@@ -2,4 +2,8 @@
 *.pdf
 cs470_venv/*
 datasets/*
+.vscode/*
+*.ipynb
 .DS_STORE
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
