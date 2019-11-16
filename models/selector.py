@@ -14,8 +14,6 @@ class ContentLoss(nn.Module):
     def forward(self, input):
         target_gram = self._gram_matrix(self.target)
         input_gram = self._gram_matrix(input)
-        print(target_gram.shape, "tttttttttttttttttttttttt")
-        print(input_gram.shape, "iiiiiiiiiiiiiiiiiiiiiiiii")
         loss_function = nn.MSELoss()
         self.loss = loss_function(input_gram, target_gram)
 
@@ -48,21 +46,25 @@ def transfer_model(pretrained_model, content_img):
             name = "bn_{}".format(i)
         else:
             raise RuntimeError("Unrecognized layer: {}".format(layer.__class__.__name__))
-        
+        print("name: ", name)
         model.add_module(name, layer)
-        if "pool" in name:
+        if "conv" in name:
             target = model(content_img).detach()
             content_loss = ContentLoss(target)
-            model.add_module("content_loss_{}", content_loss)
+            model.add_module("content_loss_{}".format(i), content_loss)
             content_losses.append(content_loss)
 
     for i in range(len(model) - 1, -1, -1):
         if isinstance(model[i], ContentLoss):
             break
         
-    model = model[:(i + 1)]
+    model = model[:(i+1)]
 
     return model, content_losses
+
+def get_layer_info (pretrained_model, content_img):
+    pretrained_model = copy.deepcopy(pretrained_model)
+
 
 
 # model, content_losses = transfer_model(pt, style_img)
