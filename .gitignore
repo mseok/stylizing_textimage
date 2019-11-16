@@ -1,2 +1,5 @@
 *.docx
 *.pdf
+cs470_venv/*
+datasets/*
+.DS_STORE
