@@ -34,15 +34,16 @@ def load_glyph_dataset(color=False):
     return train_loader 
 
 # 사용 예시.
-for batch_idx, (data, target) in enumerate(load_glyph_dataset(True)):
-    print (batch_idx)
-    data = data.transpose(2,1).transpose(3,2)
-    print (data.size())
-    position_list = alphabet_position('gle')
-    glyph_list = []
-    for p in position_list:
-        glyph_list.append(data[0][:,64*(p-1):64*p,:])
-    output_glyph = torch.cat (glyph_list, dim=1) # 이거 갖다 쓰면 되긴함.
-    plt.imshow (torch.cat(glyph_list, dim=1))
-    if (batch_idx == 1):
-        break
+if __name__ == "__main__":
+    for batch_idx, (data, target) in enumerate(load_glyph_dataset(True)):
+        print (batch_idx)
+        data = data.transpose(2,1).transpose(3,2)
+        print (data.size())
+        position_list = alphabet_position('gle')
+        glyph_list = []
+        for p in position_list:
+            glyph_list.append(data[0][:,64*(p-1):64*p,:])
+        output_glyph = torch.cat (glyph_list, dim=1) # 이거 갖다 쓰면 되긴함.
+        plt.imshow (torch.cat(glyph_list, dim=1))
+        if (batch_idx == 1):
+            break

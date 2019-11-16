@@ -11,6 +11,7 @@ import torchvision.models as models
 # load models and pretrained selector network
 from models.nets import *
 from models.selector import *
+from data import *
 
 import torch
 import torch.nn as nn
