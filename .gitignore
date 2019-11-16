@@ -3,3 +3,4 @@
 .DS_STORE
 cs470_venv/*
 datasets/*
+.vscode/*
