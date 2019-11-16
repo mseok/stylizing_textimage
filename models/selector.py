@@ -36,22 +36,22 @@ def transfer_model(pretrained_model, content_img):
     for layer in pretrained_model.children():
         if isinstance(layer, nn.Conv2d):
             i += 1
-            name = f"conv_{i}"
+            name = "conv_{}".format(i)
         elif isinstance(layer, nn.ReLU):
-            name = f"relu_{i}"
+            name = "relu_{}".format(i)
             layer = nn.ReLU(inplace=False)
         elif isinstance(layer, nn.MaxPool2d):
-            name = f"pool_{i}"
+            name = "pool_{}".format(i)
         elif isinstance(layer, nn.BatchNorm2d):
-            name = f"bn_{i}"
+            name = "bn_{}".format(i)
         else:
-            raise RuntimeError(f"Unrecognized layer: {layer.__class__.__name__}")
+            raise RuntimeError("Unrecognized layer: {}".format(layer.__class__.__name__))
         
         model.add_module(name, layer)
         if "conv" in name:
             target = model(content_img).detach()
             content_loss = ContentLoss(target)
-            model.add_module(f"content_loss_{i}", content_loss)
+            model.add_module("content_loss_{}", content_loss)
             content_losses.append(content_loss)
 
     for i in range(len(model) - 1, -1, -1):
