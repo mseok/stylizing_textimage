@@ -1,5 +1,6 @@
 *.docx
 *.pdf
+.DS_STORE
 cs470_venv/*
 datasets/*
 .vscode/*
@@ -7,3 +8,4 @@ datasets/*
 .DS_STORE
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+
