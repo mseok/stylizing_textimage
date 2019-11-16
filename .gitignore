@@ -1,3 +1,4 @@
+models/__pycache__/*
 *.docx
 *.pdf
 .DS_STORE
@@ -8,3 +9,4 @@ datasets/*
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+*.png

@@ -71,10 +71,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     for batch_idx, (data, target) in enumerate(load_glyph_dataset(args, True)):
-        print (batch_idx)
+        # print (batch_idx)
         data = data.transpose(2,1).transpose(3,2) # B x 64 x (64 x 26) x 3
-        print (data.size())
-        position_list = alphabet_position('gle')
+        # print (data.size())
+        position_list = alphabet_position('g')
         glyph_list = []
         for p in position_list:
             glyph_list.append(data[0][:,64*(p-1):64*p,:])
@@ -82,19 +82,22 @@ if __name__ == "__main__":
         plt.imshow (torch.cat(glyph_list, dim=1))
         if (batch_idx == 1):
             break
-    plt.imsave('test.png', output_glyph)
+    plt.imsave('test1.png', output_glyph)
+    plt.imsave('test2.png', output_glyph)
     # print(output_glyph)
     # print(args.epochs)
 
     # Data loader
 
     # pretrained model for content selector
-    # pt = models.vgg16(pretrained=True).features.eval()
+    pt = models.vgg16(pretrained=True).features.eval()
     # for source in train_dataset:
-    #     model, content_losses = transfer_model(pt, source)
+        # model, content_losses = transfer_model(pt, source)
+    model, content_losses = transfer_model(pt, output_glyph.unsqueeze(0).transpose(1,3))
 
     # model, content_losses = transfer_model(pt, style_img)
-    # model(content_img)
+    model(output_glyph.unsqueeze(0).transpose(1,3))
+    print(content_losses)
     # content_score = 0
     # for i, sl in enumerate(content_losses):
     #     content_score += 100 * sl.loss
