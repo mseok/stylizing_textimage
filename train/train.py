@@ -52,7 +52,7 @@ def val():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs',
+    parser.add_argument('--epoch',
                         help='number of epochs for training',
                         type=int,
                         default=10)
@@ -68,42 +68,68 @@ if __name__ == "__main__":
                         help='',
                         type=str,
                         default='mini_datasets/Capitals64/')
+    parser.add_argument('--latent_dim',
+                        help='',
+                        type=int,
+                        default=1024)
+    parser.add_argument('--learning_rate',
+                        help='',
+                        type=float,
+                        default=0.001)
     args = parser.parse_args()
 
-    for batch_idx, (data, target) in enumerate(load_glyph_dataset(args, True)):
-        # print (batch_idx)
-        data = data.transpose(2,1).transpose(3,2) # B x 64 x (64 x 26) x 3
-        # print (data.size())
-        position_list = alphabet_position('g')
-        glyph_list = []
-        for p in position_list:
-            glyph_list.append(data[0][:,64*(p-1):64*p,:])
-        output_glyph = torch.cat (glyph_list, dim=1)
-        plt.imshow (torch.cat(glyph_list, dim=1))
-        if (batch_idx == 1):
-            break
-    # plt.imsave('test1.png', output_glyph)
-    # plt.imsave('test2.png', output_glyph)
-    print (output_glyph.size())
-    # print(output_glyph)
-    # print(args.epochs)
-
     # Data loader
+    """
+    output_source
+    1. input data has colored 26 alphabets 64 * (64 * 26) * 3
+    2. get certain position of alphabets via alphabet_position function
+    3. get output_source by concating source_list which is selected in (2)
+       alphabets from input data(1)
+    """
+    for batch_idx, (data, _) in enumerate(load_dataset(args, True)):
+        data = data # b * 3 * 64 * (64*26)
+        position_list = alphabet_position('tlqkf')
+        source_list = []
+        for p in position_list:
+            source_list.append(data[:,:,:,64*(p-1):64*p])
+        output_source = torch.cat(source_list, dim=3)
 
     # pretrained model for content selector
     pt = models.vgg16(pretrained=True).features.eval()
-    # for source in train_dataset:
-        # model, content_losses = transfer_model(pt, source)
-    model, content_losses = transfer_model(pt, output_glyph.unsqueeze(0).transpose(1,3))
+    content_selector, content_losses = transfer_model(pt, output_source)
 
-    # model, content_losses = transfer_model(pt, style_img)
-    model(output_glyph.unsqueeze(0).transpose(1,3).transpose(2,3))
+    content_selector(output_source.transpose(2,3))
+    for l in content_losses:
+        print(l.loss)
+    
+    # b * 64 * (64 * 26) * 3 glyph input
+    # b * 64 * (64 * 5) * 3 source input
+    glyph_input = torch.randn(4, 3, 64, 64*26)
+    source_input = torch.randn(4, 3, 64, 64*5)
+    target = torch.randn(4, 3, 64, 64*26)
+    with SummaryWriter() as writer:
+        for epoch in range(args.epoch):
+            generator = Generator(args.latent_dim)
+            generator_loss = nn.L1Loss()
+            gen_optimizer = optim.Adam(generator.parameters(), lr=args.learning_rate)
+            # data contain glyph input, source input(5 alphabets), target image
+            generated_target = generator(source_input, glyph_input)
+            gen_loss = generator_loss(generated_target, target)
 
-    for i, p in enumerate (content_losses):
-        print ("layer{}".format(i),p.loss)
-
-    # print(content_losses)
-    # content_score = 0
-    # for i, sl in enumerate(content_losses):
-    #     content_score += 100 * sl.loss
-    # content_score
+            real = torch.ones((generated_target.shape[0], 1), dtype=torch.float32, requires_grad=False)
+            fake = torch.zeros((generated_target.shape[0], 1), dtype=torch.float32, requires_grad=False)
+            discriminator = Discriminator()
+            discriminator_loss = nn.BCELoss()
+            dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
+            gan_loss = discriminator_loss(discriminator(generated_target), fake) \
+                     + discriminator_loss(discriminator(target), real)
+            
+            total_loss = gen_loss + gan_loss
+            total_loss.backward()
+            gen_optimizer.step()
+            dis_optimizer.step()
+            print(total_loss)
+            
+    # train dataloader -> glyph 26, source 5
+    # via model -> generate total all 26 alphabets
+    # answer -> 26 alphabets same class with source

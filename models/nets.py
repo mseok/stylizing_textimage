@@ -2,10 +2,59 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import sys
+import os
+from os import path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import copy
 import argparse
 
-from .layers import *
+from models.layers import *
+
+
+class Generator(nn.Module):
+    def __init__(self, latent_dim, style_length=5, content_length=26):
+        super(Generator, self).__init__()
+        self.style_encoder = nn.Sequential(
+            SingleConv(3, 64),
+            PaperEncoderBlock(64, 128, 7),
+            PaperEncoderBlock(128, 256, 5),
+            PaperEncoderBlock(256, 512, 5),
+            PaperEncoderBlock(512, 512, 5),
+            PaperEncoderBlock(512, 512, 5),
+            SingleConv(512, 512),
+            PaperEncoderBlock(512, 512, 5)
+        )
+        self.content_encoder = copy.deepcopy(self.style_encoder)
+        self.style_linear = nn.Linear(512*1*1*style_length, latent_dim)
+        self.content_linear = nn.Linear(512*1*1*content_length, latent_dim)
+        self.delinear = nn.Linear(latent_dim, 512*1*1*content_length)
+        self.decoder = nn.Sequential(
+            PaperDecoderBlock(512, 512, 5),
+            SingleDeconv(512, 512),
+            PaperDecoderBlock(512, 512, 7),
+            PaperDecoderBlock(512, 512, 7),
+            PaperDecoderBlock(512, 256, 7),
+            PaperDecoderBlock(256, 128, 7),
+            PaperDecoderBlock(128, 64, 7),
+            SingleDeconv(64, 3)
+        )
+
+    def forward(self, input1, input2):
+        sc = []
+        for sl, cl in zip(self.style_encoder, self.content_encoder):
+            input1 = sl(input1)
+            input2 = cl(input2)
+            sc.append(input2)
+        b, c, h, w = input2.shape
+        input1 = self.style_linear(input1.view(input1.shape[0], -1))
+        input2 = self.content_linear(input2.view(input2.shape[0], -1))
+        output = self.delinear(torch.mul(input1, input2)).view(b, c, h, w)
+        for i, dl in enumerate(self.decoder):
+            sc_layer = sc[-1-i]
+            output = dl(sc_layer, output)
+
+        return output
 
 
 class CustomJointNet(nn.Module):
@@ -168,6 +217,31 @@ class PaperJointNet(nn.Module):
         return base
 
 
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(64*64*26*3, 1024),
+            nn.Dropout(0.3),
+            nn.BatchNorm1d(1024),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(1024, 512),
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(512, 128),
+            nn.BatchNorm1d(128),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(128, 1),
+            nn.Sigmoid()
+        )
+    
+    def forward(self, x):
+        output = x.view(x.shape[0], -1)
+        output = self.layers(output)
+
+        return output
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--in_dim', type=int, default=3)
@@ -198,17 +272,21 @@ if __name__ == "__main__":
     #                       args.encoder_kernel_list, args.decoder_kernel_list,
     #                       args.encoder_stride_list, args.decoder_stride_list,
     #                       args.encoder_padding_list, args.decoder_padding_list)
-    model = CustomJointNet(args.in_dim, args.latent_dim, args.width, args.height,
-                           args.slope, args.encoder_kernel_list, args.decoder_kernel_list)
+    # model = CustomJointNet(args.in_dim, args.latent_dim, args.width, args.height,
+    #                        args.slope, args.encoder_kernel_list, args.decoder_kernel_list)
+    model = Generator(args.latent_dim)
 
-    content_input = torch.randn(4, 3, 64, 64)
-    style_input = torch.randn(4, 3, 64, 64)
+    # content_input = torch.randn(4, 3, 64, 64)
+    # style_input = torch.randn(4, 3, 64, 64)
+    content_input = torch.randn(4, 3, 64, 64*26)
+    style_input = torch.randn(4, 3, 64, 64*5)
     output = model(style_input, content_input)
-    print(output.shape)
     """
     PaperJointNet
-    python ./models/models.py --encoder_channel_list 64 128 256 --encoder_kernel_list 7 5 5 --encoder_stride_list 2 2 2 --encoder_padding_list 0 0 0 --decoder_channel_list 128 64 3 --decoder_kernel_list 5 7 7 --decoder_stride_list 2 2 2 --decoder_padding_list 0 0 0
+    python ./models/nets.py --encoder_channel_list 64 128 256 --encoder_kernel_list 7 5 5 --encoder_stride_list 2 2 2 --encoder_padding_list 0 0 0 --decoder_channel_list 128 64 3 --decoder_kernel_list 5 7 7 --decoder_stride_list 2 2 2 --decoder_padding_list 0 0 0
     CustomJointNet
-    python ./models/models.py --encoder_kernel_list 7 5 5 --decoder_kernel_list 5 7 7
+    python ./models/nets.py --encoder_kernel_list 7 5 5 --decoder_kernel_list 5 7 7
+    Generator
+    python ./models/nets.py --latent_dim 1024
     """
     # ptmodel = models.vgg16(pretrained=True)

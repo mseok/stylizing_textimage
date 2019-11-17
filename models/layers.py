@@ -1,9 +1,122 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 import copy
 import argparse
+
+
+class SingleConv(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super(SingleConv, self).__init__()
+        self.layers = nn.Sequential(
+            nn.Conv2d(in_channels=in_dim,
+                      out_channels=out_dim,
+                      kernel_size=3,
+                      padding=1),
+            nn.BatchNorm2d(out_dim),
+            nn.LeakyReLU(0.2)
+        )
+
+    def forward(self, x):
+        output = self.layers(x)
+
+        return output
+
+
+class SingleDeconv(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super(SingleDeconv, self).__init__()
+        self.layers = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=in_dim*2,
+                                out_channels=out_dim,
+                                kernel_size=3,
+                                padding=1),
+            nn.BatchNorm2d(out_dim),
+            nn.LeakyReLU(0.2)
+        )
+
+    def forward(self, input1, input2):
+        x = torch.cat([input1, input2], 1)
+        output = self.layers(x)
+
+        return output
+
+
+class EncoderBlock(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super(EncoderBlock, self).__init__()
+        self.layers = nn.Sequential(
+            SingleConv(in_dim, out_dim),
+            nn.MaxPool2d(2)
+        )
+    
+    def forward(self, x):
+        output = self.layers(x)
+
+        return output
+
+
+class DecoderBlock(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super(DecoderBlock, self).__init__()
+        self.upsample = nn.ConvTranspose2d(in_channels=in_dim//2,
+                                           out_channels=in_dim//2,
+                                           kernel_size=2,
+                                           stride=2)
+        self.conv = SingleConv(in_dim, out_dim)
+
+    def forward(self, input1, input2):
+        input1 = self.upsample(input1)
+        # B C H W
+        diffH = input2.shape[2] - input1.shape[2]
+        diffW = input2.shape[3] - input1.shape[3]
+        input1 = F.pad(input1, [diffW//2, diffW-diffW//2,
+                                diffH//2, diffH-diffH//2])
+        output = self.conv(torch.cat([input2, input1], dim=1))
+
+        return output
+
+
+class PaperEncoderBlock(nn.Module):
+    def __init__(self, in_dim, out_dim, kernel):
+        super(PaperEncoderBlock, self).__init__()
+        self.pad = kernel // 2
+        self.layers = nn.Sequential(
+            nn.Conv2d(in_channels=in_dim,
+                      out_channels=out_dim,
+                      kernel_size=kernel,
+                      stride=2,
+                      padding=self.pad),
+            nn.BatchNorm2d(out_dim),
+            nn.LeakyReLU(0.2)
+        )
+    
+    def forward(self, x):
+        output = self.layers(x)
+
+        return output
+
+
+class PaperDecoderBlock(nn.Module):
+    def __init__(self, in_dim, out_dim, kernel):
+        super(PaperDecoderBlock, self).__init__()
+        self.pad = kernel // 2
+        self.layers = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=in_dim*2,
+                               out_channels=out_dim,
+                               kernel_size=kernel,
+                               stride=2,
+                               padding=self.pad,
+                               output_padding=1),
+            nn.BatchNorm2d(out_dim),
+            nn.LeakyReLU(0.2)
+        )
+    
+    def forward(self, input1, input2):
+        x = torch.cat([input1, input2], 1)
+        output = self.layers(x)
+
+        return output
 
 
 class EncoderConvBlock(nn.Module):

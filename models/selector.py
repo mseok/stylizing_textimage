@@ -34,8 +34,6 @@ def transfer_model(pretrained_model, content_img):
     
     i = 0
     for layer in pretrained_model.children():
-        if i == 0:
-            print(layer(content_img))
         if isinstance(layer, nn.Conv2d):
             i += 1
             name = "conv_{}".format(i)
@@ -48,7 +46,7 @@ def transfer_model(pretrained_model, content_img):
             name = "bn_{}".format(i)
         else:
             raise RuntimeError("Unrecognized layer: {}".format(layer.__class__.__name__))
-        print("name: ", name)
+
         model.add_module(name, layer)
         if name in ['conv_1', 'conv_3', 'conv_5', 'conv_8', 'conv_11']:
             target = model(content_img).detach()
@@ -66,12 +64,3 @@ def transfer_model(pretrained_model, content_img):
 
 def get_layer_info (pretrained_model, content_img):
     pretrained_model = copy.deepcopy(pretrained_model)
-
-
-
-# model, content_losses = transfer_model(pt, style_img)
-# model(content_img)
-# content_score = 0
-# for i, sl in enumerate(content_losses):
-#     content_score += 100 * sl.loss
-# content_score
