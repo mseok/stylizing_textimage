@@ -8,5 +8,5 @@ datasets/*
 .DS_STORE
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-
+*/.pyc
 *.png

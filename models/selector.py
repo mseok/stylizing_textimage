@@ -31,7 +31,7 @@ def transfer_model(pretrained_model, content_img):
     pretrained_model = copy.deepcopy(pretrained_model)
     content_losses = []
     model = nn.Sequential()
-    layers = ["conv_1", "conv_3", "conv_5", "conv_8", "conv_11"]
+    
     i = 0
     for layer in pretrained_model.children():
         if i == 0:
@@ -48,9 +48,9 @@ def transfer_model(pretrained_model, content_img):
             name = "bn_{}".format(i)
         else:
             raise RuntimeError("Unrecognized layer: {}".format(layer.__class__.__name__))
-
+        print("name: ", name)
         model.add_module(name, layer)
-        if name in layers:
+        if name in ['conv_1', 'conv_3', 'conv_5', 'conv_8', 'conv_11']:
             target = model(content_img).detach()
             content_loss = ContentLoss(target)
             model.add_module("content_loss_{}".format(i), content_loss)
@@ -60,9 +60,13 @@ def transfer_model(pretrained_model, content_img):
         if isinstance(model[i], ContentLoss):
             break
         
-    model = model[:(i + 1)]
+    model = model[:(i+1)]
 
     return model, content_losses
+
+def get_layer_info (pretrained_model, content_img):
+    pretrained_model = copy.deepcopy(pretrained_model)
+
 
 
 # model, content_losses = transfer_model(pt, style_img)

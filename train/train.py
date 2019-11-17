@@ -78,12 +78,13 @@ if __name__ == "__main__":
         glyph_list = []
         for p in position_list:
             glyph_list.append(data[0][:,64*(p-1):64*p,:])
-        output_glyph = torch.cat (glyph_list, dim=1) # 이거 갖다 쓰면 되긴함.
+        output_glyph = torch.cat (glyph_list, dim=1)
         plt.imshow (torch.cat(glyph_list, dim=1))
         if (batch_idx == 1):
             break
-    plt.imsave('test1.png', output_glyph)
-    plt.imsave('test2.png', output_glyph)
+    # plt.imsave('test1.png', output_glyph)
+    # plt.imsave('test2.png', output_glyph)
+    print (output_glyph.size())
     # print(output_glyph)
     # print(args.epochs)
 
@@ -96,9 +97,12 @@ if __name__ == "__main__":
     model, content_losses = transfer_model(pt, output_glyph.unsqueeze(0).transpose(1,3))
 
     # model, content_losses = transfer_model(pt, style_img)
-    model(output_glyph.unsqueeze(0).transpose(1,3))
-    
-    print(content_losses)
+    model(output_glyph.unsqueeze(0).transpose(1,3).transpose(2,3))
+
+    for i, p in enumerate (content_losses):
+        print ("layer{}".format(i),p.loss)
+
+    # print(content_losses)
     # content_score = 0
     # for i, sl in enumerate(content_losses):
     #     content_score += 100 * sl.loss
