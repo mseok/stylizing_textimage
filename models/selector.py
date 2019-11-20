@@ -64,3 +64,9 @@ def transfer_model(pretrained_model, content_img):
 
 def get_layer_info (pretrained_model, content_img):
     pretrained_model = copy.deepcopy(pretrained_model)
+
+def select (source_input):
+    for batch_idx, (data, target) in enumerate(load_dataset(True)):
+        # data = data.transpose(2,1).transpose(3,2)
+        if (batch_idx == 0):
+            return data
