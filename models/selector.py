@@ -1,8 +1,19 @@
 import torch
 import torch.nn as nn
-
+import argparse
+import cv2
 # for pretrained model
 import torchvision.models as models
+import sys
+import os
+from os import path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+from data import *
+import numpy as np
+import matplotlib.pylab as plt
+
+
+# import data.data_loader
 
 import copy
 
@@ -64,3 +75,65 @@ def transfer_model(pretrained_model, content_img):
 
 def get_layer_info (pretrained_model, content_img):
     pretrained_model = copy.deepcopy(pretrained_model)
+
+# source input : 1*3*64*(64*5), b*3*64*(64*5) -> output: b*1
+def _get_loss (source_input, glyph):
+    b = glyph.size()[0]
+    loss_list = []
+    for idx in range(b):
+        pt = models.vgg16(pretrained=True).features.eval()
+        content_selector, content_losses = transfer_model(pt, torch.unsqueeze(glyph[idx,:,:,:], 0))
+        content_selector(source_input)
+        loss = 0
+        for cl in content_losses:
+            loss += cl.loss
+        loss_list.append(loss.item())
+    return loss_list
+
+def select (source_input, input_size=5, source_character= 'abcde'):
+    min_loss = 9999
+    selected_glyph = torch.rand(1,3,64,64*5)
+    temp_l = []
+    for batch_idx, (data, _) in enumerate(load_dataset(args, color=False)):
+        position_list = alphabet_position(source_character)
+        glyph_list = []
+        for p in position_list:
+            glyph_list.append(data[:,:,:,64*(p-1):64*p])
+        temp_glyph = torch.cat (glyph_list, dim=3)
+
+        temp_l = _get_loss (source_input, temp_glyph)
+
+        if min(temp_l) < min_loss:
+            min_idx = temp_l.index(min(temp_l))
+            selected_glyph = torch.unsqueeze(data[min_idx,:,:,:], 0)
+
+        if (batch_idx == 0):
+            break
+    
+    return selected_glyph
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--epoch',
+                        help='number of epochs for training',
+                        type=int,
+                        default=10)
+    parser.add_argument('--batch_size',
+                        help='number of batches',
+                        type=int,
+                        default=2)
+    parser.add_argument('--color_path',
+                        help='path for style data sources',
+                        type=str,
+                        default='mini_datasets/Capitals_colorGrad64/')
+    parser.add_argument('--noncolor_path',
+                        help='path for glyph data sources',
+                        type=str,
+                        default='mini_datasets/Capitals64/')
+    args = parser.parse_args()
+
+    selected_glyph = select(torch.rand((1, 3, 64, 64*5)))
+
+    plt.imshow (torch.squeeze(selected_glyph).permute(1,2,0))
+    plt.show()
+
