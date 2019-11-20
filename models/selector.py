@@ -9,7 +9,8 @@ import os
 from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from data import *
-
+import numpy as np
+import matplotlib.pylab as plt
 
 
 # import data.data_loader
@@ -91,7 +92,7 @@ def _get_loss (source_input, glyph):
 
 def select (source_input, input_size=5, source_character= 'abcde'):
     min_loss = 9999
-    selected_glyph = torch.zeros(1,3,64,64*5)
+    selected_glyph = torch.rand(1,3,64,64*5)
     temp_l = []
     for batch_idx, (data, _) in enumerate(load_dataset(args, color=False)):
         position_list = alphabet_position(source_character)
@@ -102,14 +103,14 @@ def select (source_input, input_size=5, source_character= 'abcde'):
 
         temp_l = _get_loss (source_input, temp_glyph)
 
-        if min(temp_l) <min_loss:
+        if min(temp_l) < min_loss:
             min_idx = temp_l.index(min(temp_l))
             selected_glyph = torch.unsqueeze(data[min_idx,:,:,:], 0)
 
         if (batch_idx == 0):
             break
     
-    return selected_glyph.size(), selected_glyph
+    return selected_glyph
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -120,19 +121,19 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size',
                         help='number of batches',
                         type=int,
-                        default=1)
+                        default=2)
     parser.add_argument('--color_path',
                         help='path for style data sources',
                         type=str,
-                        default='../mini_datasets/Capitals_colorGrad64/')
+                        default='mini_datasets/Capitals_colorGrad64/')
     parser.add_argument('--noncolor_path',
                         help='path for glyph data sources',
                         type=str,
-                        default='../mini_datasets/Capitals64/')
+                        default='mini_datasets/Capitals64/')
     args = parser.parse_args()
 
-    size, selected_glyph = select(torch.zeros(1, 3, 64, 64*5))
-    cv2.imwrite ("test.png", selected_glyph)
-    
+    selected_glyph = select(torch.rand((1, 3, 64, 64*5)))
 
+    plt.imshow (torch.squeeze(selected_glyph).permute(1,2,0))
+    plt.show()
 
