@@ -27,7 +27,7 @@ import torch.utils.data.distributed
 
 
 def train(generator, discriminator, target, source, glyph, gen_criterion,
-          dis_criterion, gen_optimizer, dis_optimizer, real, fake, args):
+          dis_criterion, gen_optimizer, dis_optimizer, args):
     generator.train()
     discriminator.train()
 
@@ -43,6 +43,9 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
         source = source.cuda()
         target = target.cuda()
 
+    batch = target.shape[0]
+    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
+    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
@@ -69,6 +72,9 @@ def val(generator, discriminator, target, source, glyph,
         source = source.cuda()
         target = target.cuda()
 
+    batch = target.shape[0]
+    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
+    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
@@ -117,16 +123,14 @@ if __name__ == "__main__":
                         default=0.001)
     parser.add_argument('--gpu',
                         help='whether use gpu or not',
-                        type=bool,
-                        default=False)
+                        action='store_true')
     parser.add_argument('--expname',
                         help='experiment name',
                         type=str,
                         default='test')
     parser.add_argument('--load',
                         help='whether load pretrained file or not',
-                        type=bool,
-                        default=False)
+                        action='store_true')
     parser.add_argument('--save_fpath',
                         help='model parameter saved file path',
                         type=str,
@@ -152,10 +156,6 @@ if __name__ == "__main__":
     
     # pretrained model for content selector
     # pt = models.vgg16(pretrained=True).features.eval()
-    
-    for batch_idx, (data, _) in enumerate(load_dataset(args, color=False)):
-        glyph_input = data # b * 3 * 64 * (64*26)
-        break
 
     # content_selector, content_losses = transfer_model(pt, output_source)
 
@@ -174,8 +174,6 @@ if __name__ == "__main__":
     gen_optimizer = optim.Adam(generator.parameters(), lr=args.learning_rate)
 
     # ADVERSARIAL
-    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
-    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
     discriminator = Discriminator()
     discriminator_loss = nn.BCELoss()
     dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
@@ -203,16 +201,19 @@ if __name__ == "__main__":
             epoch_train_loss = []
             for batch_idx, (data, _) in enumerate(load_dataset(args, color=True)):
                 target_input = data # b * 3 * 64 * (64*26)
+                print (target_input.size())
                 position_list = alphabet_position('tlqkf')        
                 source_list = []
                 for p in position_list:
                     source_list.append(data[:,:,:,64*(p-1):64*p])
-                source_input = torch.cat(source_list, dim=3)
-                # glyph_input = select(source_input)
+                source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
+                print(source_input.size())
+                glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
+                print(glyph_input.shape)
                 loss = train(generator, discriminator, target_input, source_input,
                              glyph_input, generator_loss, discriminator_loss,
-                             gen_optimizer, dis_optimizer, real, fake, args)
-                epoch_train_loss.append(train)
+                             gen_optimizer, dis_optimizer, args)
+                epoch_train_loss.append(loss)
                 print("epoch: {}, cycle: {}, loss: {}".format(epoch, batch_idx, loss))
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
             writer.add_scalar('train/loss', train_loss.item(), epoch)
@@ -223,7 +224,7 @@ if __name__ == "__main__":
 
             # val_loss = val(generator, discriminator, val_dataset,
             #                generator_loss, discriminator_loss,
-            #                real, fake, args)
+            #                args)
             # writer.add_scalar('val/loss', val_loss.item(), epoch)
 
             # is_best = val_loss <= best_loss

@@ -9,6 +9,7 @@ import os
 from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from data import *
+from train import *
 import numpy as np
 import matplotlib.pylab as plt
 
@@ -90,9 +91,10 @@ def _get_loss (source_input, glyph):
         loss_list.append(loss.item())
     return loss_list
 
-def select (source_input, input_size=5, source_character= 'abcde'):
+def _select_one (args, source_input, input_size=5, source_character='tlqkf'):
+    source_input = torch.unsqueeze(source_input, dim=0)
     min_loss = 9999
-    selected_glyph = torch.rand(1,3,64,64*5)
+    selected_glyph = torch.rand(1,3,64,64*26)
     temp_l = []
     for batch_idx, (data, _) in enumerate(load_dataset(args, color=False)):
         position_list = alphabet_position(source_character)
@@ -111,6 +113,16 @@ def select (source_input, input_size=5, source_character= 'abcde'):
             break
     
     return selected_glyph
+
+def select (args, source_input, input_size=5, source_character='tlqkf'):
+    batch_size = source_input.size()[0]
+    output_list = []
+    for i in range(batch_size):
+        temp_source = source_input[i,:,:,:]
+        output_list.append (_select_one (args, temp_source, input_size, source_character))
+    
+    return torch.cat (output_list, dim=0)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
