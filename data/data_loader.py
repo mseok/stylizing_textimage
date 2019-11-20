@@ -1,7 +1,7 @@
 import torch
 import torchvision
-import matplotlib as mpl
-import matplotlib.pylab as plt
+# import matplotlib as mpl
+# import matplotlib.pylab as plt
 import os
 
 # alphabet_position
