@@ -189,6 +189,7 @@ if __name__ == "__main__":
         dis_optimizer.load_state_dict(discriminator_checkpoint['optimizer'])
 
     if args.gpu:
+        cuda = torch.device('cuda') 
         generator = generator.cuda()
         generator_loss = generator_loss.cuda()
         discriminator = discriminator.cuda()
