@@ -28,6 +28,11 @@ import torch.utils.data.distributed
 
 def train(generator, discriminator, target, source, glyph, gen_criterion,
           dis_criterion, gen_optimizer, dis_optimizer, args):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    print(torch.cuda.max_memory_allocated(device=None))
+    print(torch.cuda.memory_allocated(device=None))
+
     generator.train()
     discriminator.train()
 
@@ -38,19 +43,31 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
     # source = torch.tensor(source, dtype=torch.float32, requires_grad=True)
     # target = torch.tensor(target)
             
-    if args.gpu:
-        glyph = glyph.cuda()
-        source = source.cuda()
-        target = target.cuda()
+    # if args.gpu:
+    #     glyph = glyph.cuda()
+    #     source = source.cuda()
+    #     target = target.cuda()
+
+    glyph=glyph.to(device)
+    print('ok')
+    source=source.to(device)
+    target=target.to(device)
 
     batch = target.shape[0]
     real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
+    real=real.to(device)
+
     fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
+    fake=fake.to(device)
+
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
             + dis_criterion(discriminator(target), real)
-    
+
+    print('FLAG1')
+    print(type(gan_loss.item()))
+    print('flag2')
     total_loss = gen_loss + gan_loss
     total_loss.backward()
     gen_optimizer.step()
@@ -60,6 +77,9 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
 
 def val(generator, discriminator, target, source, glyph,
         gen_criterion, dis_criterion, real, fake, args):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
     generator.eval()
     discriminator.eval()
 
@@ -67,14 +87,23 @@ def val(generator, discriminator, target, source, glyph,
     # source = torch.tensor(source, dtype=torch.float32, requires_grad=True)
     # target = torch.tensor(target)
             
-    if args.gpu:
-        glyph = glyph.cuda()
-        source = source.cuda()
-        target = target.cuda()
+    # if args.gpu:
+    #     glyph = glyph.cuda()
+    #     source = source.cuda()
+    #     target = target.cuda()
+
+    glyph=glyph.to(device)
+    print('ok2')
+    source=source.to(device)
+    target=target.to(device)
 
     batch = target.shape[0]
     real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
+    real = real.to(device)
+
     fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
+    fake = fake.to(device)
+
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
