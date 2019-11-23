@@ -58,10 +58,7 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
     gen_optimizer.step()
     dis_optimizer.step()
 
-    del generated_target
-    del gen_loss
-    del gan_loss
-    del total_loss
+    del generated_target, gen_loss, gan_loss, total_loss
 
     return total_loss.item()
 
@@ -217,15 +214,15 @@ if __name__ == "__main__":
                     source_list.append(data[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
                 print(source_input.size())
-                glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
+                # glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
+                glyph_input = torch.zeros(data.shape)
                 print(glyph_input.shape)
                 loss = train(generator, discriminator, target_input, source_input,
                              glyph_input, generator_loss, discriminator_loss,
                              gen_optimizer, dis_optimizer, args)
                 epoch_train_loss.append(loss)
                 print("epoch: {}, cycle: {}, loss: {}".format(epoch, batch_idx, loss))
-                del target_input
-                del glyph_input
+                del target_input, glyph_input
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
             writer.add_scalar('train/loss', train_loss, epoch)
             
