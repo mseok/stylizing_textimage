@@ -33,19 +33,21 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
 
     gen_optimizer.zero_grad()
     dis_optimizer.zero_grad()
-
+    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
+    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
     # glyph = torch.tensor(glyph, dtype=torch.float32, requires_grad=True)
     # source = torch.tensor(source, dtype=torch.float32, requires_grad=True)
     # target = torch.tensor(target)
             
     if args.gpu:
-        glyph = glyph.cuda()
-        source = source.cuda()
-        target = target.cuda()
+        glyph = glyph.to(device)
+        source = source.to(device)
+        target = target.to(device)
+        read = real.to(device)
+        fake = fake.to(device)
 
     batch = target.shape[0]
-    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
-    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
+
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
@@ -68,9 +70,9 @@ def val(generator, discriminator, target, source, glyph,
     # target = torch.tensor(target)
             
     if args.gpu:
-        glyph = glyph.cuda()
-        source = source.cuda()
-        target = target.cuda()
+        glyph = glyph.to(device)
+        source = source.to(device)
+        target = target.to(device)
 
     batch = target.shape[0]
     real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
@@ -189,11 +191,12 @@ if __name__ == "__main__":
         dis_optimizer.load_state_dict(discriminator_checkpoint['optimizer'])
 
     if args.gpu:
-        cuda = torch.device('cuda') 
-        generator = generator.cuda()
-        generator_loss = generator_loss.cuda()
-        discriminator = discriminator.cuda()
-        discriminator_loss = discriminator_loss.cuda()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        generator = generator.to(device)
+        generator_loss = generator_loss.to(device)
+        discriminator = discriminator.to(device)
+        discriminator_loss = discriminator_loss.to(device)
+
     print("======= Finished Constructing Models =======")
 
     best_loss = 99999
