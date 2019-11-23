@@ -25,6 +25,7 @@ class Generator(nn.Module):
             SingleConv(512, 512),
             PaperEncoderBlock(512, 512, 5)
         )
+        # 64 128 256 512 ~>
         self.content_encoder = copy.deepcopy(self.style_encoder)
         self.style_linear = nn.Linear(512*1*1*style_length, latent_dim)
         self.content_linear = nn.Linear(512*1*1*content_length, latent_dim)
@@ -223,16 +224,16 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.layers = nn.Sequential(
-            nn.Linear(64*64*26*3, 1024),
+            nn.Linear(64*64*26*3, 128),
             nn.Dropout(0.3),
-            nn.BatchNorm1d(1024),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 128),
             nn.BatchNorm1d(128),
             nn.LeakyReLU(0.2, inplace=True),
+            # nn.Linear(1024, 512),
+            # nn.BatchNorm1d(512),
+            # nn.LeakyReLU(0.2, inplace=True),
+            # nn.Linear(512, 128),
+            # nn.BatchNorm1d(128),
+            # nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(128, 1),
             nn.Sigmoid()
         )

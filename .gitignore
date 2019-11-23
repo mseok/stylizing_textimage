@@ -13,3 +13,4 @@ datasets/*
 __pycache__
 *.json
 runs/*
+results/*
