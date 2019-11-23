@@ -58,7 +58,12 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
     gen_optimizer.step()
     dis_optimizer.step()
 
-    return total_loss
+    del generated_target
+    del gen_loss
+    del gan_loss
+    del total_loss
+
+    return total_loss.item()
 
 def val(generator, discriminator, target, source, glyph,
         gen_criterion, dis_criterion, real, fake, args):
@@ -219,8 +224,10 @@ if __name__ == "__main__":
                              gen_optimizer, dis_optimizer, args)
                 epoch_train_loss.append(loss)
                 print("epoch: {}, cycle: {}, loss: {}".format(epoch, batch_idx, loss))
+                del target_input
+                del glyph_input
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
-            writer.add_scalar('train/loss', train_loss.item(), epoch)
+            writer.add_scalar('train/loss', train_loss, epoch)
             
             is_best = train_loss <= best_loss
             if is_best:
