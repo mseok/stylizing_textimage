@@ -48,10 +48,10 @@ class Generator(nn.Module):
             input2 = cl(input2)
             sc.append(input2)
         b, c, h, w = input2.shape
-        print("before", input1.shape, "\t", input2.shape)
+        # print("before", input1.shape, "\t", input2.shape)
         input1 = self.style_linear(input1.view(input1.shape[0], -1))
         input2 = self.content_linear(input2.view(input2.shape[0], -1))
-        print("after", input1.shape, "\t", input2.shape)
+        # print("after", input1.shape, "\t", input2.shape)
         output = self.delinear(torch.mul(input1, input2)).view(b, c, h, w)
         for i, dl in enumerate(self.decoder):
             sc_layer = sc[-1-i]

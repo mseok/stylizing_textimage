@@ -46,6 +46,10 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
         real = real.to(device)
         fake = fake.to(device)
 
+    batch = target.shape[0]
+    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False).to(device)
+    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False).to(device)
+
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
@@ -74,8 +78,9 @@ def val(generator, discriminator, target, source, glyph,
         target = target.to(device)
 
     batch = target.shape[0]
-    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False)
-    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False)
+    real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False).to(device)
+    fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False).to(device)
+
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
@@ -146,15 +151,15 @@ if __name__ == "__main__":
     3. get output_source by concating source_list which is selected in (2)
        alphabets from input data(1)
     """
-    for batch_idx, (data, _) in enumerate(load_dataset(args, color=True)):
-        target_input = data # b * 3 * 64 * (64*26)
-        position_list = alphabet_position('tlqkf')
+    # for batch_idx, (data, _) in enumerate(load_dataset(args, color=True)):
+    #     target_input = data # b * 3 * 64 * (64*26)
+    #     position_list = alphabet_position('tlqkf')
         
-        source_list = []
-        for p in position_list:
-            source_list.append(data[:,:,:,64*(p-1):64*p])
-        source_input = torch.cat(source_list, dim=3)
-    print("======= Finished Loading Datasets =======")
+    #     source_list = []
+    #     for p in position_list:
+    #         source_list.append(data[:,:,:,64*(p-1):64*p])
+    #     source_input = torch.cat(source_list, dim=3)
+    # print("======= Finished Loading Datasets =======")
 
     # GENERATOR
     generator = Generator(args.latent_dim)
@@ -166,8 +171,8 @@ if __name__ == "__main__":
     discriminator_loss = nn.BCELoss()
     dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
 
-    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
-    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
+    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False).to(device)
+    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False).to(device)
 
     if args.load:
         print("=> loading checkpoint '{}'".format(args.save_fpath))
@@ -210,8 +215,8 @@ if __name__ == "__main__":
                 for p in position_list:
                     source_list.append(data[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
-                # glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
-                glyph_input = torch.zeros(data.shape)
+                glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
+                # glyph_input = torch.zeros(data.shape)
                 loss = train(generator, discriminator, target_input, source_input,
                              glyph_input, generator_loss, discriminator_loss,
                              gen_optimizer, dis_optimizer, real, fake, args)

@@ -4,7 +4,7 @@
 EPOCH=10
 BATCH_SIZE=10
 COLOR_PATH="mini_datasets/Capitals_colorGrad64/"
-NONCOLOR_PATH="mini_datasets/Capitals64/"
+NONCOLOR_PATH="mini_datasets/Capitals64/BASE"
 LATENT_DIM=1024
 LEARNING_RATE=1e-3
 EXPNAME='test'
