@@ -86,7 +86,7 @@ def save_checkpoint(state_dict, epoch, cycle):
     directory = 'results/{}/'.format(args.expname)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    filename = directory + '_save_{}_{}.pt'.format(epoch, cycle)
+    filename = directory + 'save_{}_{}.pt'.format(epoch, cycle)
     torch.save(state_dict, filename)
 
 
