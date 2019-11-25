@@ -26,18 +26,13 @@ import torch.utils.data.distributed
 
 
 def train(generator, discriminator, target, source, glyph, gen_criterion,
-          dis_criterion, gen_optimizer, dis_optimizer, real, fake, args):
+          dis_criterion, gen_optimizer, dis_optimizer, real, fake, device,
+          args):
     generator.train()
     discriminator.train()
 
     gen_optimizer.zero_grad()
     dis_optimizer.zero_grad()
-
-    # real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
-    # fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
-    # glyph = torch.tensor(glyph, dtype=torch.float32, requires_grad=True)
-    # source = torch.tensor(source, dtype=torch.float32, requires_grad=True)
-    # target = torch.tensor(target)
             
     if args.gpu:
         glyph = glyph.to(device)
@@ -67,10 +62,6 @@ def val(generator, discriminator, target, source, glyph,
         gen_criterion, dis_criterion, real, fake, args):
     generator.eval()
     discriminator.eval()
-
-    # glyph = torch.tensor(glyph, dtype=torch.float32, requires_grad=True)
-    # source = torch.tensor(source, dtype=torch.float32, requires_grad=True)
-    # target = torch.tensor(target)
             
     if args.gpu:
         glyph = glyph.to(device)
@@ -91,14 +82,12 @@ def val(generator, discriminator, target, source, glyph,
     return total_loss
 
 
-def save_checkpoint(state_dict, is_best, model_type, filename='checkpoint.pt'):
-	directory = 'results/{}/'.format(args.expname)
-	if not os.path.exists(directory):
-		os.makedirs(directory)
-	filename = directory + model_type + '_' + filename
-	torch.save(state_dict, filename)
-	if is_best:
-		shutil.copyfile(filename, 'results/{}/'.format(args.expname) + model_type +  '_model_best.pt')
+def save_checkpoint(state_dict, epoch, cycle):
+    directory = 'results/{}/'.format(args.expname)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    filename = directory + '_save_{}_{}.pt'.format(epoch, cycle)
+    torch.save(state_dict, filename)
 
 
 if __name__ == "__main__":
@@ -141,9 +130,12 @@ if __name__ == "__main__":
                         help='model parameter saved file path',
                         type=str,
                         default='results/test')
+    parser.add_argument('--save_every',
+                        help='interval of saving model parameters',
+                        type=int,
+                        default=10)
     args = parser.parse_args()
 
-    # Data loader
     """
     output_source
     1. input data has colored 26 alphabets 64 * (64 * 26) * 3
@@ -151,15 +143,6 @@ if __name__ == "__main__":
     3. get output_source by concating source_list which is selected in (2)
        alphabets from input data(1)
     """
-    # for batch_idx, (data, _) in enumerate(load_dataset(args, color=True)):
-    #     target_input = data # b * 3 * 64 * (64*26)
-    #     position_list = alphabet_position('tlqkf')
-        
-    #     source_list = []
-    #     for p in position_list:
-    #         source_list.append(data[:,:,:,64*(p-1):64*p])
-    #     source_input = torch.cat(source_list, dim=3)
-    # print("======= Finished Loading Datasets =======")
 
     # GENERATOR
     generator = Generator(args.latent_dim)
@@ -171,18 +154,20 @@ if __name__ == "__main__":
     discriminator_loss = nn.BCELoss()
     dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
 
-    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False).to(device)
-    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False).to(device)
+    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
+    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
 
     if args.load:
         print("=> loading checkpoint '{}'".format(args.save_fpath))
-        generator_checkpoint = torch.load(args.save_fpath + '/generator_model_best.pt')
-        discriminator_checkpoint = torch.load(args.save_fpath + '/discriminator_model_best.pt')
+        checkpoint = torch.load(args.save_fpath + '/best.pt')
+
+        generator.load_state_dict(checkpoint['gen_model'])
+        gen_optimizer.load_state_dict(checkpoint['gen_opt'])
+        discriminator.load_state_dict(checkpoint['dis_model'])
+        dis_optimizer.load_state_dict(checkpoint['dis_opt'])
+        loaded_epoch = checkpoint['epoch']
+        loaded_cycle = checkpoint['cycle']
         print("=> loaded checkpoint '{}'".format(args.save_fpath))
-        generator.load_state_dict(generator_checkpoint['model'])
-        gen_optimizer.load_state_dict(generator_checkpoint['optimizer'])
-        discriminator.load_state_dict(discriminator_checkpoint['model'])
-        dis_optimizer.load_state_dict(discriminator_checkpoint['optimizer'])
 
     if args.gpu:
         device = torch.device("cuda" if torch.cuda.is_available() and args.gpu else "cpu")
@@ -194,21 +179,26 @@ if __name__ == "__main__":
         fake = fake.to(device)
     print("======= Finished Constructing Models =======")
 
-    generator_paramters = sum(p.numel() for p in generator.parameters() if p.requires_grad)
-    discriminator_parameters = sum(p.numel() for p in discriminator.parameters() if p.requires_grad)
-    params = generator_paramters + discriminator_parameters
-    print(generator_paramters)
-    print(discriminator_parameters)
-    # exit(-1)
-
-    # generator = nn.DataParallel(generator)
-    # discriminator = nn.DataParallel(discriminator)
+    # generator_paramters = sum(p.numel() for p in generator.parameters() if p.requires_grad)
+    # discriminator_parameters = sum(p.numel() for p in discriminator.parameters() if p.requires_grad)
+    # params = generator_paramters + discriminator_parameters
 
     best_loss = 99999
+    loaded_epoch = 0 if not args.load else loaded_epoch
+    loaded_cycle = 0 if not args.load else loaded_cycle
     with SummaryWriter() as writer:
         for epoch in range(args.epoch):
+            if epoch < loaded_epoch:
+                continue
             epoch_train_loss = []
+            dataset = load_dataset(args, color=True)
+            print("number of total cycles: {}".format(len(dataset)))
+            save_interval = len(dataset) // args.save_every
             for batch_idx, (data, _) in enumerate(load_dataset(args, color=True)):
+                if epoch == loaded_epoch:
+                    if batch_idx < loaded_cycle:
+                        continue
+                start_time = time.time()
                 target_input = data # b * 3 * 64 * (64*26)
                 position_list = alphabet_position('tlqkf')
                 source_list = []
@@ -216,20 +206,29 @@ if __name__ == "__main__":
                     source_list.append(data[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
                 glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
-                # glyph_input = torch.zeros(data.shape)
                 loss = train(generator, discriminator, target_input, source_input,
                              glyph_input, generator_loss, discriminator_loss,
-                             gen_optimizer, dis_optimizer, real, fake, args)
+                             gen_optimizer, dis_optimizer, real, fake, device,
+                             args)
                 epoch_train_loss.append(loss)
-                print("epoch: {}, cycle: {}, loss: {}".format(epoch, batch_idx, loss))
+                end_time = time.time()
+                time_interval = end_time - start_time
+               
+                if batch_idx % save_interval == 0: 
+                    save_checkpoint({
+                        'epoch': epoch,
+                        'cycle': batch_idx,
+                        'gen_model': generator.state_dict(),
+                        'dis_model': discriminator.state_dict(),
+                        'gen_opt': gen_optimizer.state_dict(),
+                        'dis_opt': discriminator.state_dict(),
+                    }, epoch, batch_idx)
+                            
+                print("epoch: {}, cycle: {}, loss: {}, time: {:.2f}sec".format(epoch, batch_idx, loss, time_interval))
 
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
             writer.add_scalar('train/loss', train_loss, epoch)
             
-            is_best = train_loss <= best_loss
-            if is_best:
-                best_loss = train_loss
-
             # val_loss = val(generator, discriminator, val_dataset,
             #                generator_loss, discriminator_loss,
             #                args)
@@ -238,13 +237,6 @@ if __name__ == "__main__":
             # is_best = val_loss <= best_loss
             # if is_best:
             #     best_loss = val_loss
-            
-            save_checkpoint({
-                'epoch': epoch,
-                'model': generator.state_dict(),
-                'optimizer': gen_optimizer.state_dict(),
-                'best_loss': best_loss,
-            }, is_best, 'generator')
             
             # save_checkpoint({
             #     'epoch': epoch,
