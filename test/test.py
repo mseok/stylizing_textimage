@@ -20,7 +20,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 
-from torchvision import save_image
+from torchvision.utils import save_image
 import torch.utils.data
 import torch.utils.data.distributed
 
@@ -33,7 +33,7 @@ def make_glyph (args):
 
     generator.load_state_dict(checkpoint['gen_model'])
 
-    source_input_np = cv2.imread(args.input_location)
+    source_input_np = cv2.imread(args.input_location, 1)
     source_input = torch.from_numpy(source_input_np).float() # 64*(64*26)*3
     source_input = torch.unsqueeze(source_input.permute(2,0,1), 0) # 1*3*64*(64*26)
 
@@ -73,8 +73,9 @@ if __name__ == "__main__":
                         default='datasets/Capitals64/BASE/')
     args = parser.parse_args()
 
-    whatwemade = make_glyph(args)
-    save_image(whatwemade, args.output_folder + args.output_name)
+    whatwemade = make_glyph(args) # 1*3*64*(64*26)
+    whatwemade = torch.squeeze(whatwemade).permute(1,2,0)
+    cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
     print ("Congratulations!! {} saved:)")
 
     
