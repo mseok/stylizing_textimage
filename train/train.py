@@ -5,6 +5,7 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import argparse
 import time
 import shutil
+import random
 
 # for pretrained model
 import torchvision.models as models
@@ -188,6 +189,9 @@ if __name__ == "__main__":
     generator = nn.DataParallel(generator)
     discriminator = nn.DataParallel(discriminator)
 
+    alphabet_list = 'abcdefghijklmnopqrstuvwxyz'
+    alphabet_num = 5
+
     best_loss = 99999
     loaded_epoch = 0 if not args.load else loaded_epoch
     loaded_cycle = 0 if not args.load else loaded_cycle
@@ -205,12 +209,13 @@ if __name__ == "__main__":
                         continue
                 start_time = time.time()
                 target_input = data # b * 3 * 64 * (64*26)
-                position_list = alphabet_position('tlqkf')
+                rand_word = ''.join(random.sample(alphabet_list, alphabet_num))
+                position_list = alphabet_position(rand_word)
                 source_list = []
                 for p in position_list:
                     source_list.append(data[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
-                glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
+                glyph_input = select(args, source_input, input_size=alphabet_num, source_character=rand_word)
                 loss = train(generator, discriminator, target_input, source_input,
                              glyph_input, generator_loss, discriminator_loss,
                              gen_optimizer, dis_optimizer, real, fake, device,
