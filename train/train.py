@@ -171,8 +171,8 @@ if __name__ == "__main__":
     discriminator_loss = nn.BCELoss()
     dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
 
-    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False).to(device)
-    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False).to(device)
+    real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
+    fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
 
     if args.load:
         print("=> loading checkpoint '{}'".format(args.save_fpath))
@@ -201,8 +201,8 @@ if __name__ == "__main__":
     print(discriminator_parameters)
     # exit(-1)
 
-    # generator = nn.DataParallel(generator)
-    # discriminator = nn.DataParallel(discriminator)
+    generator = nn.DataParallel(generator)
+    discriminator = nn.DataParallel(discriminator)
 
     best_loss = 99999
     with SummaryWriter() as writer:
