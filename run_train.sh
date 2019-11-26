@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+EPOCH=50
+BATCH_SIZE=52
+COLOR_PATH="datasets/Capitals_colorGrad64/train"
+NONCOLOR_PATH="datasets/Capitals64/BASE"
+LATENT_DIM=1024
+LEARNING_RATE=5e-3
+EXPNAME='test'
+SAVE_FPATH=''
+SAVE_EVERY=100
+
+python3 train/train.py --epoch $EPOCH --batch_size $BATCH_SIZE --color_path $COLOR_PATH --noncolor_path $NONCOLOR_PATH --latent_dim $LATENT_DIM --learning_rate $LEARNING_RATE --expname $EXPNAME --save_every $SAVE_EVERY --gpu
