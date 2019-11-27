@@ -45,7 +45,6 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
     batch = target.shape[0]
     real = torch.ones((batch, 1), dtype=torch.float32, requires_grad=False).to(device)
     fake = torch.zeros((batch, 1), dtype=torch.float32, requires_grad=False).to(device)
-
     generated_target = generator(source, glyph)
     gen_loss = gen_criterion(generated_target, target)
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
@@ -228,6 +227,8 @@ if __name__ == "__main__":
                 if epoch == loaded_epoch:
                     if batch_idx < loaded_cycle:
                         continue
+                # print(data.shape[0], "seokhyun\n")
+
                 start_time = time.time()
                 target_input = data # b * 3 * 64 * (64*26)
                 rand_word = ''.join(random.sample(alphabet_list, alphabet_num))

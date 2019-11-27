@@ -79,6 +79,7 @@ def get_layer_info (pretrained_model, content_img):
 
 # source input : 1*3*64*(64*5), b*3*64*(64*5) -> output: b*1
 def _get_loss (source_input, glyph):
+    # print (source_input.shape, '\t', glyph.shape)    
     b = glyph.size()[0]
     loss_list = []
     for idx in range(b):
@@ -92,7 +93,9 @@ def _get_loss (source_input, glyph):
     return loss_list
 
 def _select_one (args, source_input, input_size=5, source_character='tlqkf'):
+    # print ('in _select_one', source_input.shape)
     source_input = torch.unsqueeze(source_input, dim=0)
+    # print ('22', source_input.shape)
     min_loss = 99999999
     # selected_glyph = torch.rand(1,3,64,64*26)
     temp_l = []
@@ -116,6 +119,7 @@ def _select_one (args, source_input, input_size=5, source_character='tlqkf'):
 def select (args, source_input, input_size=5, source_character='tlqkf'):
     batch_size = source_input.size()[0]
     output_list = []
+    # print ('in select', source_input.shape)
     for i in range(batch_size):
         temp_source = source_input[i,:,:,:]
         output_list.append (_select_one (args, temp_source, input_size, source_character))

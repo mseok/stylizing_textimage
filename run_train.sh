@@ -2,7 +2,7 @@
 
 
 EPOCH=50
-BATCH_SIZE=50
+BATCH_SIZE=48
 COLOR_PATH="datasets/Capitals_colorGrad64/train"
 NONCOLOR_PATH="datasets/Capitals64/BASE"
 LATENT_DIM=1024

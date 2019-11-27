@@ -38,6 +38,7 @@ def make_glyph (args):
     generator.load_state_dict(adapted_gen)
 
     source_input = plt.imread(args.input_location)
+    print('in test', source_input.shape)
     source_input = torch.from_numpy(source_input).float() # 64*(64*5)*3
     source_input = torch.unsqueeze(source_input.permute(2,0,1), 0) # 1*3*64*(64*5)
 
