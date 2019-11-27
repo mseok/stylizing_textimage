@@ -135,6 +135,17 @@ if __name__ == "__main__":
                         help='interval of saving model parameters',
                         type=int,
                         default=10)
+    parser.add_argument('--scheduler',
+                        action='store_true',
+                        help='to use or not use the lr scheduler')
+    parser.add_argument('--schedule_factor',
+                        default=0.5,
+                        type=float,
+                        help='factor value for lr scheduler')
+    parser.add_argument('--schedule_patience',
+                        default=5,
+                        type=int,
+                        help='patience value for lr scheduler')
     args = parser.parse_args()
 
     """
@@ -159,16 +170,26 @@ if __name__ == "__main__":
     fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
 
     if args.load:
-        print("=> loading checkpoint '{}'".format(args.save_fpath))
-        checkpoint = torch.load(args.save_fpath + '/best.pt')
+        print("=> loading checkpoint 'results/{}'".format(args.save_fpath))
+        checkpoint = torch.load('results/' + args.save_fpath)
 
-        generator.load_state_dict(checkpoint['gen_model'])
-        gen_optimizer.load_state_dict(checkpoint['gen_opt'])
-        discriminator.load_state_dict(checkpoint['dis_model'])
-        dis_optimizer.load_state_dict(checkpoint['dis_opt'])
+        prefix = 'module.'
+        n_clip = len(prefix)
+        gen = checkpoint['gen_model']
+        adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
+        generator.load_state_dict(adapted_gen)
+        # gen_optimizer.load_state_dict(checkpoint['gen_opt'])
+        dis = checkpoint['dis_model']
+        adapted_dis = {k[n_clip:]: v for k, v in dis.items() if k.startswith(prefix)}
+        discriminator.load_state_dict(adapted_dis)
+        # dis_optimizer.load_state_dict(checkpoint['dis_opt'])
         loaded_epoch = checkpoint['epoch']
         loaded_cycle = checkpoint['cycle']
         print("=> loaded checkpoint '{}'".format(args.save_fpath))
+
+    if args.scheduler:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(gen_optimizer, mode='min', factor=args.schedule_factor, patience=args.schedule_patience, verbose=True)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(dis_optimizer, mode='min', factor=args.schedule_factor, patience=args.schedule_patience, verbose=True)
 
     if args.gpu:
         device = torch.device("cuda" if torch.cuda.is_available() and args.gpu else "cpu")
@@ -232,13 +253,16 @@ if __name__ == "__main__":
                         'dis_model': discriminator.state_dict(),
                         'gen_opt': gen_optimizer.state_dict(),
                         'dis_opt': discriminator.state_dict(),
-			'loss': loss
+			            'loss': loss
                     }, epoch, batch_idx)
                             
                 print("epoch: {}, cycle: {}, loss: {}, time: {:.2f}sec".format(epoch, batch_idx, loss, time_interval))
 
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
             writer.add_scalar('train/loss', train_loss, epoch)
+
+            if args.scheduler:
+                scheduler.step(train_loss)
             
             # val_loss = val(generator, discriminator, val_dataset,
             #                generator_loss, discriminator_loss,
