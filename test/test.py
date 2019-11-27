@@ -36,13 +36,14 @@ def make_glyph (args):
     adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
     generator.load_state_dict(adapted_gen)
 
-    source_input_np = cv2.imread(args.input_location, 1)
-    source_input = torch.from_numpy(source_input_np).float() # 64*(64*26)*3
-    source_input = torch.unsqueeze(source_input.permute(2,0,1), 0) # 1*3*64*(64*26)
+    source_input = cv2.imread(args.input_location, 1)
+    source_input = torch.from_numpy(source_input).float() # 64*(64*5)*3
+    source_input = torch.unsqueeze(source_input.permute(2,0,1), 0) # 1*3*64*(64*5)
 
-    glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
+    glyph_input = select(args, source_input, input_size=5, source_character='tlqkf') # 1*3*64*(64*26)
 
-    return generator (source_input, glyph_input).detach()
+    with torch.no_grad:
+        return generator (source_input, glyph_input)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
-    whatwemade = torch.squeeze(whatwemade).permute(1,2,0)
+    whatwemade = torch.squeeze(whatwemade).permute(1,2,0) # 64*(64*26)*3
     #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
     cv2.imwrite ('output.png', whatwemade.numpy())
     print ("Congratulations!! {} saved:)".format(args.output_name))

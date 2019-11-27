@@ -21,10 +21,12 @@ if __name__ == "__main__":
     # data = cv2.cvtColor(data, cv2.COLOR_BGR2RGB)
     print (data.shape)
     data = torch.from_numpy(data).float() # 64*(64*26)*3
+    data = torch.unsqueeze(data.permute (2,0,1), 0) # 1*3*64*(64*26)
 
     position_list = alphabet_position('tlqkf')
     glyph_list = []
     for p in position_list:
-        glyph_list.append(data[:,64*(p-1):64*p, :])
-    output_glyph = torch.cat (glyph_list, dim=1)
+        glyph_list.append(data[:,:,:,64*(p-1):64*p])
+    output_glyph = torch.cat (glyph_list, dim=3)
+    output_glyph = torch.squeeze (output_glyph).permute (1,2,0)
     cv2.imwrite ('test_source_tlqkf.png', output_glyph.numpy())
