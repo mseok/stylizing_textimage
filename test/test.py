@@ -43,6 +43,9 @@ def make_glyph (args):
 
     glyph_input = select(args, source_input, input_size=5, source_character='tlqkf') # 1*3*64*(64*26)
 
+    save_image (source_input, 'source_BLOOD.png')
+    save_image (glyph_input, 'glyph_BLOOD.png')
+
     with torch.no_grad():
         return generator (source_input, glyph_input)
 
