@@ -23,6 +23,7 @@ import numpy as np
 from torchvision.utils import save_image
 import torch.utils.data
 import torch.utils.data.distributed
+import matplotlib.pyplot as plt
 
 def make_glyph (args):
 
@@ -36,7 +37,7 @@ def make_glyph (args):
     adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
     generator.load_state_dict(adapted_gen)
 
-    source_input = cv2.imread(args.input_location, 1)
+    source_input = plt.imread(args.input_location)
     source_input = torch.from_numpy(source_input).float() # 64*(64*5)*3
     source_input = torch.unsqueeze(source_input.permute(2,0,1), 0) # 1*3*64*(64*5)
 
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
     whatwemade = torch.squeeze(whatwemade).permute(1,2,0) # 64*(64*26)*3
     #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
-    cv2.imwrite ('output.png', whatwemade.numpy())
+    plt.imsave ('output.png', whatwemade.numpy())
     print ("Congratulations!! output.png saved:)")
 
     
