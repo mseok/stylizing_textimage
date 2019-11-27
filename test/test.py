@@ -42,7 +42,7 @@ def make_glyph (args):
 
     glyph_input = select(args, source_input, input_size=5, source_character='tlqkf') # 1*3*64*(64*26)
 
-    with torch.no_grad:
+    with torch.no_grad():
         return generator (source_input, glyph_input)
 
 if __name__ == "__main__":
@@ -85,6 +85,6 @@ if __name__ == "__main__":
     whatwemade = torch.squeeze(whatwemade).permute(1,2,0) # 64*(64*26)*3
     #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
     cv2.imwrite ('output.png', whatwemade.numpy())
-    print ("Congratulations!! {} saved:)".format(args.output_name))
+    print ("Congratulations!! output.png saved:)")
 
     
