@@ -29,9 +29,12 @@ def make_glyph (args):
     # generator initialize
     generator = Generator (args.latent_dim)
 
-    checkpoint = torch.load(args.pretrained_location)
-
-    generator.load_state_dict(checkpoint['gen_model'])
+    checkpoint = torch.load(args.pretrained_location)    
+    prefix = 'module.'
+    n_clip = len(prefix)
+    gen = checkpoint['gen_model']
+    adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
+    generator.load_state_dict(adapted_gen)
 
     source_input_np = cv2.imread(args.input_location, 1)
     source_input = torch.from_numpy(source_input_np).float() # 64*(64*26)*3
@@ -39,7 +42,7 @@ def make_glyph (args):
 
     glyph_input = select(args, source_input, input_size=5, source_character='tlqkf')
 
-    return generator (source_input, glyph_input)
+    return generator (source_input, glyph_input).detach()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -71,11 +74,16 @@ if __name__ == "__main__":
                         help='path for glyph data sources',
                         type=str,
                         default='datasets/Capitals64/BASE/')
+    parser.add_argument('--batch_size',
+                        help='batch size',
+                        type=int,
+                        default=1)
     args = parser.parse_args()
 
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
     whatwemade = torch.squeeze(whatwemade).permute(1,2,0)
-    cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
+    #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
+    cv2.imwrite ('output.png', whatwemade.numpy())
     print ("Congratulations!! {} saved:)".format(args.output_name))
 
     

@@ -93,7 +93,7 @@ def _get_loss (source_input, glyph):
 
 def _select_one (args, source_input, input_size=5, source_character='tlqkf'):
     source_input = torch.unsqueeze(source_input, dim=0)
-    min_loss = 9999
+    min_loss = 99999999
     # selected_glyph = torch.rand(1,3,64,64*26)
     temp_l = []
     for batch_idx, (data, _) in enumerate(load_dataset(args, color=False)):
@@ -104,7 +104,6 @@ def _select_one (args, source_input, input_size=5, source_character='tlqkf'):
         temp_glyph = torch.cat (glyph_list, dim=3)
 
         temp_l = _get_loss (source_input, temp_glyph)
-
         if min(temp_l) < min_loss:
             min_idx = temp_l.index(min(temp_l))
             selected_glyph = torch.unsqueeze(data[min_idx,:,:,:], 0)
