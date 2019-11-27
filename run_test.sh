@@ -1,6 +1,6 @@
 #!/bin/sh
 
-INPUT_LOCATION='test_source_tlqkf.png'
+INPUT_LOCATION='BLOOD_tlqkf.png'
 PRETRAINED_LOCATION='results/test/save_0_400.pth.tar'
 OUTPUT_FOLDER='output/'
 OUTPUT_NAME='test.png'
