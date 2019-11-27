@@ -19,7 +19,7 @@ from data import *
 
 # cv2.imread imwrite :: 64*(64*26)*3 format and BGR.
 if __name__ == "__main__":
-    data = plt.imread('test_source.png')
+    data = plt.imread('BLOOD.png')
     data = torch.from_numpy(data).float() # 64*(64*26)*3
     data = torch.unsqueeze(data.permute (2,0,1), 0) # 1*3*64*(64*26)
 
@@ -29,6 +29,6 @@ if __name__ == "__main__":
         glyph_list.append(data[:,:,:,64*(p-1):64*p])
     output_glyph = torch.cat (glyph_list, dim=3)
     output_glyph = torch.squeeze (output_glyph)#.permute (1,2,0)
-    save_image (output_glyph, 'test_source_tlqkf.png') # 3*64*(64*26)
+    save_image (output_glyph, 'BLOOD_tlqkf.png') # 3*64*(64*26)
     # scipy.misc.toimage(output_glyph.numpy()).save('scipy.png')
     # plt.imsave ('test_source_tlqkf_tlqkf.png', output_glyph.numpy())
