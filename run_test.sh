@@ -1,7 +1,7 @@
 #!/bin/sh
 
 INPUT_LOCATION='datasets/Capitals_colorGrad64/train/train/Comme-Heavy.0.2.png'
-PRETRAINED_LOCATION='results/selector/save_1_0.pth.tar'
+PRETRAINED_LOCATION='results/selector/save_2_0.pth.tar'
 OUTPUT_FOLDER='output/'
 OUTPUT_NAME='output_test.png'
 LATENT_DIM=1024

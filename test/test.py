@@ -24,7 +24,7 @@ from torchvision.utils import save_image
 import torch.utils.data
 import torch.utils.data.distributed
 import matplotlib.pyplot as plt
-
+import random
 def make_glyph (args):
 
     # generator initialize
@@ -38,6 +38,8 @@ def make_glyph (args):
     generator.load_state_dict(adapted_gen)
 
     target_input = plt.imread(args.input_location) # 64*(64*5)*3
+    if (len(target_input.shape)==2):
+        target_input = np.stack((target_input,)*3, axis=-1) # gray -> rgb
     target_input = torch.from_numpy(target_input).float() # 64*(64*5)*3
     target_input = torch.unsqueeze(target_input.permute(2,0,1), 0) # 1*3*64*(64*5)
 
@@ -55,6 +57,8 @@ def make_glyph (args):
     glyph_address = args.input_location.replace("_colorGrad64", '64')[:-5] + '0.png'
 
     glyph_input = plt.imread(glyph_address)
+    if (len(glyph_input.shape)==2):
+        glyph_input = np.stack((glyph_input,)*3, axis=-1) # gray -> rgb
     glyph_input = torch.from_numpy(glyph_input).float() # 64*(64*26)*3
     glyph_input = torch.unsqueeze(glyph_input.permute(2,0,1), 0) # 1*3*64*(64*26)
 
@@ -101,6 +105,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
+    print(whatwemade.shape)
     whatwemade = torch.squeeze(whatwemade) #.permute(1,2,0) # 64*(64*26)*3
     save_image (whatwemade, args.output_name)
     #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
