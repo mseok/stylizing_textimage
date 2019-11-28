@@ -104,6 +104,8 @@ if __name__=='__main__':
 
     print (args.batch_size)
     for i, sample_batched in enumerate(load_dataset_with_glyph (args)):
+        print (len(sample_batched))
+        sample_batched['source'] = sample_batched['source'][:1]
         print (sample_batched['source'][0].type())
         print(i, sample_batched['source'].permute(0,3,1,2).shape, sample_batched['glyph'].shape)
         if i==2:
