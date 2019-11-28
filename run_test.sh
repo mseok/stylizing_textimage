@@ -1,9 +1,9 @@
 #!/bin/sh
 
-INPUT_LOCATION='BLOOD_tlqkf.png'
-PRETRAINED_LOCATION='results/test/save_0_300.pth.tar'
+INPUT_LOCATION='datasets/Capitals_colorGrad64/train/train/Comme-Heavy.0.2.png'
+PRETRAINED_LOCATION='results/selector/save_1_0.pth.tar'
 OUTPUT_FOLDER='output/'
-OUTPUT_NAME='fuck.png'
+OUTPUT_NAME='output_test.png'
 LATENT_DIM=1024
 COLOR_PATH="datasets/Capitals_colorGrad64/train"
 NONCOLOR_PATH="datasets/Capitals64/BASE"

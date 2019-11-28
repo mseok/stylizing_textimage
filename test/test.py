@@ -37,12 +37,26 @@ def make_glyph (args):
     adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
     generator.load_state_dict(adapted_gen)
 
-    source_input = plt.imread(args.input_location)
-    print('in test', source_input.shape)
-    source_input = torch.from_numpy(source_input).float() # 64*(64*5)*3
-    source_input = torch.unsqueeze(source_input.permute(2,0,1), 0) # 1*3*64*(64*5)
+    target_input = plt.imread(args.input_location) # 64*(64*5)*3
+    target_input = torch.from_numpy(target_input).float() # 64*(64*5)*3
+    target_input = torch.unsqueeze(target_input.permute(2,0,1), 0) # 1*3*64*(64*5)
 
-    glyph_input = select(args, source_input, input_size=5, source_character='tlqkf') # 1*3*64*(64*26)
+    alphabet_list = 'abcdefghijklmnopqrstuvwxyz'
+    alphabet_num = 5
+
+    rand_word = ''.join(random.sample(alphabet_list, alphabet_num))
+    position_list = alphabet_position(rand_word)
+    source_list = []
+    for p in position_list:
+        source_list.append(target_input[:,:,:,64*(p-1):64*p])
+
+    source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
+
+    glyph_address = args.input_location.replace("_colorGrad64", '64')[:-5] + '0.png'
+
+    glyph_input = plt.imread(glyph_address)
+    glyph_input = torch.from_numpy(glyph_input).float() # 64*(64*26)*3
+    glyph_input = torch.unsqueeze(glyph_input.permute(2,0,1), 0) # 1*3*64*(64*26)
 
     save_image (source_input, 'source_test.png')
     save_image (glyph_input, 'glyph_test.png')

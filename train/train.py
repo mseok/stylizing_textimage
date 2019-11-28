@@ -241,7 +241,6 @@ if __name__ == "__main__":
                 rand_word = ''.join(random.sample(alphabet_list, alphabet_num))
                 position_list = alphabet_position(rand_word)
                 source_list = []
-                glyph_list = []
                 for p in position_list:
                     source_list.append(target_input[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
