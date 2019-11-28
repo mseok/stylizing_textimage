@@ -239,7 +239,7 @@ if __name__ == "__main__":
                     source_list.append(target_input[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
                 glyph_input = sample_batched['glyph'].permute(0,3,1,2) # b*3*64*(64*26)
-                print (source_input.shape, glyph_input.shape)
+                #print (source_input.shape, glyph_input.shape)
                 loss = train(generator, discriminator, target_input, source_input,
                              glyph_input, generator_loss, discriminator_loss,
                              gen_optimizer, dis_optimizer, real, fake, device,
