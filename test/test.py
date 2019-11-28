@@ -44,6 +44,9 @@ def make_glyph (args):
 
     glyph_input = select(args, source_input, input_size=5, source_character='tlqkf') # 1*3*64*(64*26)
 
+    save_image (source_input, 'source_BLOOD.png')
+    save_image (glyph_input, 'glyph_BLOOD.png')
+
     with torch.no_grad():
         return generator (source_input, glyph_input)
 
@@ -84,9 +87,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
-    whatwemade = torch.squeeze(whatwemade).permute(1,2,0) # 64*(64*26)*3
+    whatwemade = torch.squeeze(whatwemade) #.permute(1,2,0) # 64*(64*26)*3
+    save_image (whatwemade, 'output_BLOOD.png')
     #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
-    plt.imsave ('output.png', whatwemade.numpy())
-    print ("Congratulations!! output.png saved:)")
+    # plt.imsave ('output.png', whatwemade.numpy())
+    print ("Congratulations!! output_BLOOD.png saved:)")
 
     
