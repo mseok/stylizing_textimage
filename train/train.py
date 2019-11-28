@@ -229,8 +229,9 @@ if __name__ == "__main__":
                         continue
                 # print(data.shape[0], "seokhyun\n")
 
-                if len(sample_batched) < args.batch_size:
-                    if len(sample_batched) < 16:
+                if len(sample_batched['source']) < args.batch_size:
+                    if len(sample_batched['source']) < 16:
+                        print("continue called, len:", len(sample_batched['source']))
                         continue
                     sample_batched['source'] = sample_batched['source'][:len(sample_batched) - len(sample_batched)%8]
                     sample_batched['glyph'] = sample_batched['glyph'][:len(sample_batched) - len(sample_batched)%8]
