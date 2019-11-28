@@ -88,9 +88,9 @@ if __name__ == "__main__":
 
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
     whatwemade = torch.squeeze(whatwemade) #.permute(1,2,0) # 64*(64*26)*3
-    save_image (whatwemade, 'output_BLOOD.png')
+    save_image (whatwemade, args.output_name)
     #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
     # plt.imsave ('output.png', whatwemade.numpy())
-    print ("Congratulations!! output_BLOOD.png saved:)")
+    print ("Congratulations!! {} saved:)".format(args.output_name))
 
     
