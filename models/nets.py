@@ -237,7 +237,7 @@ class Discriminator(nn.Module):
         )
     
     def forward(self, x):
-        output = x.view(x.shape[0], -1)
+        output = x.reshape(x.shape[0], -1)
         output = self.layers(output)
 
         return output
