@@ -25,6 +25,8 @@ import torch.utils.data
 import torch.utils.data.distributed
 import matplotlib.pyplot as plt
 import random
+
+
 def make_glyph (args):
 
     # generator initialize
@@ -67,6 +69,7 @@ def make_glyph (args):
 
     with torch.no_grad():
         return generator (source_input, glyph_input)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
