@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-EPOCH=50
+EPOCH=100
 BATCH_SIZE=48
 COLOR_PATH="datasets/Capitals_colorGrad64/train"
 LATENT_DIM=1024
