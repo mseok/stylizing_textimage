@@ -13,4 +13,5 @@ datasets/*
 __pycache__
 *.json
 runs/*
+results_new/*
 results/*

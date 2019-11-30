@@ -50,7 +50,7 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
             + dis_criterion(discriminator(target), real)
 
-    total_loss = gen_loss + gan_loss
+    total_loss = 2000*gen_loss + gan_loss
     total_loss.backward()
 
     gen_optimizer.step()
@@ -82,11 +82,11 @@ def val(generator, discriminator, target, source, glyph,
     return total_loss
 
 
-def save_checkpoint(state_dict, epoch, cycle):
-    directory = 'results/{}/'.format(args.expname)
+def save_checkpoint(state_dict, epoch):
+    directory = 'results_new/{}/'.format(args.expname)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    filename = directory + 'save_{}_{}.pth.tar'.format(epoch, cycle)
+    filename = directory + 'save_{}.pth.tar'.format(epoch)
     torch.save(state_dict, filename)
 
 
@@ -254,21 +254,19 @@ if __name__ == "__main__":
                 end_time = time.time()
                 time_interval = end_time - start_time
                
-                if batch_idx % args.save_every == 0: 
-                    save_checkpoint({
-                        'epoch': epoch,
-                        'cycle': batch_idx,
-                        'gen_model': generator.state_dict(),
-                        'dis_model': discriminator.state_dict(),
-                        'gen_opt': gen_optimizer.state_dict(),
-                        'dis_opt': discriminator.state_dict(),
-			            'loss': loss
-                    }, epoch, batch_idx)
-                            
                 print("epoch: {}, cycle: {}, loss: {}, time: {:.2f}sec".format(epoch, batch_idx, loss, time_interval))
 
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
             writer.add_scalar('train/loss', train_loss, epoch)
+
+            save_checkpoint({
+                'epoch': epoch,
+                'gen_model': generator.state_dict(),
+                'dis_model': discriminator.state_dict(),
+                'gen_opt': gen_optimizer.state_dict(),
+                'dis_opt': discriminator.state_dict(),
+                'loss': train_loss
+            }, epoch)
 
             if args.scheduler:
                 scheduler.step(train_loss)
