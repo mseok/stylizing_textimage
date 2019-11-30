@@ -1,6 +1,6 @@
 #!/bin/sh
 
-INPUT_LOCATION='datasets/Capitals_colorGrad64/train/train/8blimro.0.0.png'
+INPUT_LOCATION='datasets/Capitals_colorGrad64/train/train/4kstncl.0.1.png'
 PRETRAINED_LOCATION='results/selector/save_99_0.pth.tar'
 OUTPUT_FOLDER='output/'
 OUTPUT_NAME='output_test.png'
