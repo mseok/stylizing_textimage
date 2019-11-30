@@ -34,6 +34,9 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
 
     gen_optimizer.zero_grad()
     dis_optimizer.zero_grad()
+
+    gen_lr = get_learning_rate(gen_optimizer)[0]
+    dis_lr = get_learning_rate(dis_optimizer)[0]
             
     if args.gpu:
         glyph = glyph.to(device)
@@ -50,13 +53,13 @@ def train(generator, discriminator, target, source, glyph, gen_criterion,
     gan_loss = dis_criterion(discriminator(generated_target), fake) \
             + dis_criterion(discriminator(target), real)
 
-    total_loss = 2000*gen_loss + gan_loss
+    total_loss = args.lambda_val*gen_loss + gan_loss
     total_loss.backward()
 
     gen_optimizer.step()
     dis_optimizer.step()
 
-    return total_loss.item()
+    return total_loss.item(), gen_lr, dis_lr
 
 def val(generator, discriminator, target, source, glyph,
         gen_criterion, dis_criterion, real, fake, args):
@@ -82,12 +85,21 @@ def val(generator, discriminator, target, source, glyph,
     return total_loss
 
 
-def save_checkpoint(state_dict, epoch):
-    directory = 'results_new/{}/'.format(args.expname)
+def save_checkpoint(state_dict, epoch, cycle=None):
+    directory = 'results/{}/'.format(args.expname)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    filename = directory + 'save_{}.pth.tar'.format(epoch)
+    filename = directory + 'save_{}_{}.pth.tar'.format(epoch, cycle) if cycle else directory + 'save_{}.pth.tar'.format(epoch)
+    if cycle:
+        state_dict['cycle'] = cycle
     torch.save(state_dict, filename)
+
+
+def get_learning_rate(optimizer):
+    lr = []
+    for param_group in optimizer.param_groups:
+        lr += [param_group['lr']]
+    return lr
 
 
 if __name__ == "__main__":
@@ -145,6 +157,14 @@ if __name__ == "__main__":
                         default=5,
                         type=int,
                         help='patience value for lr scheduler')
+    parser.add_argument('--min_lr',
+                        default=0,
+                        type=float,
+                        help='minimum value of learning rate')
+    parser.add_argument('--lambda_val',
+                        default=2000,
+                        type=float,
+                        help='lambda value for adjusting balance between generator loss and GAN loss')
     args = parser.parse_args()
 
     """
@@ -158,12 +178,10 @@ if __name__ == "__main__":
     # GENERATOR
     generator = Generator(args.latent_dim)
     generator_loss = nn.L1Loss()
-    gen_optimizer = optim.Adam(generator.parameters(), lr=args.learning_rate)
 
     # ADVERSARIAL
     discriminator = Discriminator()
     discriminator_loss = nn.BCELoss()
-    dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
 
     real = torch.ones((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
     fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
@@ -183,8 +201,21 @@ if __name__ == "__main__":
         discriminator.load_state_dict(adapted_dis)
         # dis_optimizer.load_state_dict(checkpoint['dis_opt'])
         loaded_epoch = checkpoint['epoch']
-        loaded_cycle = checkpoint['cycle']
+        if checkpoint['cycle']:
+            loaded_cycle = checkpoint['cycle']
+        if checkpoint['losses']:
+            loaded_total_loss = checkpoint['losses']
+        if checkpoint['gen_lr'] and checkpoint['dis_lr']:
+            gen_lr = checkpoint['gen_lr'] if checkpoint['gen_lr'] > args.min_lr else args.min_lr
+            dis_lr = checkpoint['dis_lr'] if checkpoint['dis_lr'] > args.min_lr else args.min_lr
+
         print("=> loaded checkpoint '{}'".format(args.save_fpath))
+
+    gen_lr = gen_lr if args.load else args.learning_rate
+    dis_lr = dis_lr if args.load else args.learning_rate
+
+    gen_optimizer = optim.Adam(generator.parameters(), lr=args.learning_rate)
+    dis_optimizer = optim.Adam(discriminator.parameters(), lr=args.learning_rate)
 
     if args.scheduler:
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(gen_optimizer, mode='min', factor=args.schedule_factor, patience=args.schedule_patience, verbose=True)
@@ -203,8 +234,8 @@ if __name__ == "__main__":
     generator_paramters = sum(p.numel() for p in generator.parameters() if p.requires_grad)
     discriminator_parameters = sum(p.numel() for p in discriminator.parameters() if p.requires_grad)
     params = generator_paramters + discriminator_parameters
-    print(generator_paramters)
-    print(discriminator_parameters)
+    print("Number of parameters in GENERATOR".format(generator_paramters))
+    print("Number of parameters in DISCRIMINATOR".format(discriminator_parameters))
 
     generator = nn.DataParallel(generator)
     discriminator = nn.DataParallel(discriminator)
@@ -215,6 +246,7 @@ if __name__ == "__main__":
     best_loss = 99999
     loaded_epoch = 0 if not args.load else loaded_epoch
     loaded_cycle = 0 if not args.load else loaded_cycle
+    total_loss = [] if not args.load else loaded_total_loss
     with SummaryWriter() as writer:
         for epoch in range(args.epoch):
             if epoch < loaded_epoch:
@@ -223,12 +255,11 @@ if __name__ == "__main__":
             dataset = load_dataset_with_glyph(args)
             if epoch == 0:
                 print("number of total cycles: {}".format(len(dataset)))
+            cycle_interval = len(dataset) // 10
             for batch_idx, sample_batched in enumerate(dataset):
                 if epoch == loaded_epoch:
                     if batch_idx < loaded_cycle:
                         continue
-                # print(data.shape[0], "seokhyun\n")
-
                 if len(sample_batched['source']) < args.batch_size:
                     if len(sample_batched['source']) < 16:
                         print("continue called, len:", len(sample_batched['source']))
@@ -246,16 +277,30 @@ if __name__ == "__main__":
                     source_list.append(target_input[:,:,:,64*(p-1):64*p])
                 source_input = torch.cat(source_list, dim=3) # b*3*64*(64*5)
                 glyph_input = sample_batched['glyph'].permute(0,3,1,2) # b*3*64*(64*26)
-                #print (source_input.shape, glyph_input.shape)
-                loss = train(generator, discriminator, target_input, source_input,
-                             glyph_input, generator_loss, discriminator_loss,
-                             gen_optimizer, dis_optimizer, real, fake, device,
-                             args)
+                loss, gen_lr, dis_lr = train(generator, discriminator, target_input, source_input,
+                                             glyph_input, generator_loss, discriminator_loss,
+                                             gen_optimizer, dis_optimizer, real, fake, device,
+                                             args)
+                total_loss.append(loss)
                 epoch_train_loss.append(loss)
+                temp_train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
+
+                if batch_idx % cycle_interval == 0:
+                    save_checkpoint({
+                        'epoch': epoch,
+                        'gen_model': generator.state_dict(),
+                        'dis_model': discriminator.state_dict(),
+                        'gen_opt': gen_optimizer.state_dict(),
+                        'dis_opt': discriminator.state_dict(),
+                        'losses': total_loss,
+                        'gen_lr': gen_lr,
+                        'dis_lr': dis_lr
+                    }, epoch, batch_idx) 
+
                 end_time = time.time()
                 time_interval = end_time - start_time
                
-                print("epoch: {}, cycle: {}, loss: {}, time: {:.2f}sec".format(epoch, batch_idx, loss, time_interval))
+                print("epoch: {}, cycle: {}, loss: {}, dis_lr: {:.4f}, gen_lr: {:.4f}, time: {:.2f}sec".format(epoch, batch_idx, loss, dis_lr, gen_lr, time_interval))
 
             train_loss = sum(epoch_train_loss) / len(epoch_train_loss)
             writer.add_scalar('train/loss', train_loss, epoch)
@@ -287,7 +332,3 @@ if __name__ == "__main__":
             #     'optimizer': dis_optimizer.state_dict(),
             #     'best_loss': best_loss,
             # }, is_best, 'discriminator')
-
-    # train dataloader -> glyph 26, source 5
-    # via model -> generate total all 26 alphabets
-    # answer -> 26 alphabets same class with source
