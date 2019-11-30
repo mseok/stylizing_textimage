@@ -187,8 +187,8 @@ if __name__ == "__main__":
     fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
 
     if args.load:
-        print("=> loading checkpoint 'results/{}'".format(args.save_fpath))
-        checkpoint = torch.load('results/' + args.save_fpath)
+        print("=> loading checkpoint 'results_new/{}'".format(args.save_fpath))
+        checkpoint = torch.load('results_new/' + args.save_fpath)
 
         prefix = 'module.'
         n_clip = len(prefix)
@@ -200,6 +200,7 @@ if __name__ == "__main__":
         adapted_dis = {k[n_clip:]: v for k, v in dis.items() if k.startswith(prefix)}
         discriminator.load_state_dict(adapted_dis)
         # dis_optimizer.load_state_dict(checkpoint['dis_opt'])
+<<<<<<< HEAD
         loaded_epoch = checkpoint['epoch']
         if checkpoint['cycle']:
             loaded_cycle = checkpoint['cycle']
@@ -209,6 +210,11 @@ if __name__ == "__main__":
             gen_lr = checkpoint['gen_lr'] if checkpoint['gen_lr'] > args.min_lr else args.min_lr
             dis_lr = checkpoint['dis_lr'] if checkpoint['dis_lr'] > args.min_lr else args.min_lr
 
+=======
+        loaded_epoch = checkpoint['epoch'] + 1
+#        loaded_cycle = checkpoint['cycle']
+        loaded_cycle = 0
+>>>>>>> 2fb3c1593c460ca3c889c9f49a070e0cbbcf7aaf
         print("=> loaded checkpoint '{}'".format(args.save_fpath))
 
     gen_lr = gen_lr if args.load else args.learning_rate
