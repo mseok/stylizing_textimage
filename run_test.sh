@@ -1,7 +1,7 @@
 #!/bin/sh
 
 INPUT_LOCATION='datasets/Capitals_colorGrad64/train/train/4kstncl.0.1.png'
-PRETRAINED_LOCATION='results/selector/save_20_0.pth.tar'
+PRETRAINED_LOCATION='results_new/selector/save_0.pth.tar'
 OUTPUT_FOLDER='output/'
 OUTPUT_NAME='output_test.png'
 LATENT_DIM=1024

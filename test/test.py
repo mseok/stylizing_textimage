@@ -32,7 +32,7 @@ def make_glyph (args):
     # generator initialize
     generator = Generator (args.latent_dim)
 
-    checkpoint = torch.load(args.pretrained_location)    
+    checkpoint = torch.load(args.pretrained_location, map_location=torch.device('cpu'))
     prefix = 'module.'
     n_clip = len(prefix)
     gen = checkpoint['gen_model']
