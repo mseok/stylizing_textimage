@@ -19,8 +19,6 @@ if __name__ == "__main__":
    loss_list = []
    for file in files:
        load = torch.load(file)
-       print(load['loss'])
-       exit(-1)
        loss_list.append(load['loss'])
    with open(args.output_path, 'w') as writeFile:
        writeFile.write('The Loss Trace of experiment {}'.format(fname))
