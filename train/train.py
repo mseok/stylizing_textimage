@@ -233,8 +233,9 @@ if __name__ == "__main__":
                     if len(sample_batched['source']) < 16:
                         print("continue called, len:", len(sample_batched['source']))
                         continue
-                    sample_batched['source'] = sample_batched['source'][:len(sample_batched) - len(sample_batched)%8]
-                    sample_batched['glyph'] = sample_batched['glyph'][:len(sample_batched) - len(sample_batched)%8]
+                    temp = len(sample_batched['source']) - len(sample_batched['source'])%8
+                    sample_batched['source'] = sample_batched['source'][:temp]
+                    sample_batched['glyph'] = sample_batched['glyph'][:temp]
 
                 start_time = time.time()
                 target_input = sample_batched['source'].permute(0,3,1,2) # b*3*64*(64*26)
