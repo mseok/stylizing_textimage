@@ -49,7 +49,7 @@ def load_dataset(args, color=False):
 # return dictionary with source and glyph
 # which shape is 64*(64*26)*3 numpy array
 class ysDataset(Dataset):
-    def __init__(self, png_floder, transform=None):
+    def __init__(self, png_floder, transform=None, glyph=False):
         self.png_list = glob.glob(png_floder + '/**/*.png', recursive=True)
         self.transform = transform
 
@@ -81,6 +81,38 @@ class ysDataset(Dataset):
             sample = self.transform(sample)
 
         return sample
+
+# ysDataset_glyph
+# return glyph_data for selector
+class ysDataset_glyph(Dataset):
+    def __init__(self):
+        self.png_list = glob.glob('datasets/Capitals64/**/*.png', recursive=True)
+
+    def __len__(self):
+        return len(self.png_list)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        
+        data = plt.imread(self.png_list [idx])
+
+        if (len(data.shape) == 2):
+            data = np.stack((data,)*3, axis=-1) # gray -> rgb
+
+        if self.transform:
+            data = self.transform(data)
+
+        return data
+
+def load_only_glyph (batch_size):
+    data_only_glyph = ysDataset_glyph ()
+    glyph_loader = DataLoader (
+                        data_only_glyph,
+                        batch_size=batch_size,
+                        num_workers=1,
+                        shuffle=True)
+    return glyph_loader
 
 def load_dataset_with_glyph (args):
     ys_data = ysDataset (args.color_path)

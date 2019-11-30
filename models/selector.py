@@ -92,40 +92,26 @@ def _get_loss (source_input, glyph):
         loss_list.append(loss.item())
     return loss_list
 
-def _select_one (args, source_input, input_size=5, source_character='tlqkf'):
-    # print ('in _select_one', source_input.shape)
-    source_input = torch.unsqueeze(source_input, dim=0)
-    # print ('22', source_input.shape)
+# input : 1*3*64*(64*5) // style
+# output : 1*3*64*(64*26) // glyph
+def select (args, source_input, input_size=5, source_character='tlqkf'):
+    device = torch.device("cuda" if torch.cuda.is_available() and args.gpu else "cpu")
     min_loss = 99999999
-    # selected_glyph = torch.rand(1,3,64,64*26)
     temp_l = []
-    for batch_idx, (data, _) in enumerate(load_dataset(args, color=False)):
+    for _, data in enumerate(load_only_glyph(args.batch_size)):
         position_list = alphabet_position(source_character)
         glyph_list = []
         for p in position_list:
             glyph_list.append(data[:,:,:,64*(p-1):64*p])
         temp_glyph = torch.cat (glyph_list, dim=3)
 
-        temp_l = _get_loss (source_input, temp_glyph)
+        temp_l = _get_loss (source_input, temp_glyph.to(device))
+
         if min(temp_l) < min_loss:
             min_idx = temp_l.index(min(temp_l))
             selected_glyph = torch.unsqueeze(data[min_idx,:,:,:], 0)
-
-        if (batch_idx == 0):
-            break
     
-    return selected_glyph
-
-def select (args, source_input, input_size=5, source_character='tlqkf'):
-    batch_size = source_input.size()[0]
-    output_list = []
-    # print ('in select', source_input.shape)
-    for i in range(batch_size):
-        temp_source = source_input[i,:,:,:]
-        output_list.append (_select_one (args, temp_source, input_size, source_character))
-    
-    return torch.cat (output_list, dim=0)
-
+    return selected_glyph # 1*3*64*(64*26)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
