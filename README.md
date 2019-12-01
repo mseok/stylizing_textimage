@@ -7,6 +7,9 @@
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Usage](#Usage)
+    - [Train](#Train)
+    - [Test](#Test)
+    - [Test_non_users](#Test_non_users)
 - [Team](#team)
 - [FAQ](#FAQ)
 - [License](#license)
@@ -24,7 +27,6 @@ This is pytorch implementation of [Character Image Synthesis Based on Selected C
 $ git clone https://github.com/mseok/stylizing_textimage
 ~~~
 ### Setup
-- If you want more syntax highlighting, format your code like this:
 > update and install package below
 ~~~shell
 $ pip3 update
@@ -34,7 +36,9 @@ $ pip3 install opencv-python, pytorch, ...
 ## Usage
 ### Train
 > you can easily use our *run_train.sh*
-~~~
+<pre>
+run_train.sh
+<code>
 #!/bin/sh
 
 EPOCH=20
@@ -53,14 +57,20 @@ python3 train/train.py --epoch $EPOCH --batch_size $BATCH_SIZE --color_path $COL
 
 # if want to load, add below command
 # --load --save_fpath $SAVE_FPATH
-~~~
+</code></pre>
 - you can set every hyper-parameters here.
 - if you want to load pretrained model add **--load** and **--save_fpath** options!
 - your training model will save automatically in results/EXPNAME !
+- if you end with setting type below
+~~~shell
+$ bash run_train.sh
+~~~
 
 ### Test
-> you can also easily use our *make_font.sh
-~~~
+> you can also easily use our *make_font.sh*
+<pre>
+make_font.sh
+<code>
 #!/bin/sh
 
 INPUT_LOCATION="pocari.png"
@@ -71,12 +81,43 @@ BATCH_SIZE=512
 LATENT_DIM=1024
 
 python3 test/test_users.py --input_location $INPUT_LOCATION --source_character $SOURCE_CHARACTER --pretrained_location $PRETRAINED_LOCATION --output_name $OUTPUT_NAME --batch_size $BATCH_SIZE --latent_dim $LATENT_DIM --gpu
-~~~
+</code></pre>
 - if you do not want gpu option just delete **--gpu**
 - choose 5 letter font and type location in **INPUT_LOCATION**
 - your input size should be *(64,320,3)*
 - plz type source character in **SOURCE_CHARACTER**
 - output will save in results/OUTPUT_NAME !
+- *this phase will takes really really long time.. (because of select phase)*
+- if you end with setting type below
+~~~shell
+$ bash make_font.sh
+~~~
+
+### Test_non_users
+> if you can't wait select phase, follow below
+<pre>
+run_test.sh
+<code>
+#!/bin/sh
+
+INPUT_LOCATION="datasets/Capitals_colorGrad64/train/akaPotsley.0.2.png"
+PRETRAINED_LOCATION='results/selector/save_0.pth.tar results/selector/save_1.pth.tar results/selector/save_2.pth.tar '
+OUTPUT_FOLDER='outputs/'
+OUTPUT_NAME='output_test_0.png output_test_1.png output_test_2.png'
+LATENT_DIM=1024
+COLOR_PATH="datasets/Capitals_colorGrad64/train"
+NONCOLOR_PATH="datasets/Capitals64/BASE"
+BATCH_SIZE=1
+
+python3 test/test.py --input_location $INPUT_LOCATION --pretrained_location $PRETRAINED_LOCATION --output_folder $OUTPUT_FOLDER --output_name $OUTPUT_NAME --latent_dim $LATENT_DIM --color_path $COLOR_PATH --noncolor_path $NONCOLOR_PATH --batch_size $BATCH_SIZE
+</code></pre>
+- usage is almost same with test
+- but this require the images in datasets/Capitals_colorGrad64/
+- you can have multiple location and output_name.
+- if you end with setting type below
+~~~shell
+$ bash run_test.sh
+~~~
 ---
 ## Team
 > We are team 22 in cs470, KAIST
@@ -92,5 +133,3 @@ python3 test/test_users.py --input_location $INPUT_LOCATION --source_character $
 ## License
 
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
-
-- **[MIT license](http://opensource.org/licenses/mit-license.php)**
