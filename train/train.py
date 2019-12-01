@@ -142,10 +142,6 @@ if __name__ == "__main__":
                         help='model parameter saved file path',
                         type=str,
                         default='results/test')
-    parser.add_argument('--save_every',
-                        help='interval of saving model parameters',
-                        type=int,
-                        default=10)
     parser.add_argument('--scheduler',
                         action='store_true',
                         help='to use or not use the lr scheduler')
@@ -187,9 +183,8 @@ if __name__ == "__main__":
     fake = torch.zeros((args.batch_size, 1), dtype=torch.float32, requires_grad=False)
 
     if args.load:
-        print("=> loading checkpoint 'results_new/{}'".format(args.save_fpath))
-        checkpoint = torch.load('results_new/' + args.save_fpath)
-
+        print("=> loading checkpoint 'results/{}'".format(args.save_fpath))
+        checkpoint = torch.load('results/' + args.save_fpath)
         prefix = 'module.'
         n_clip = len(prefix)
         gen = checkpoint['gen_model']
@@ -200,7 +195,6 @@ if __name__ == "__main__":
         adapted_dis = {k[n_clip:]: v for k, v in dis.items() if k.startswith(prefix)}
         discriminator.load_state_dict(adapted_dis)
         # dis_optimizer.load_state_dict(checkpoint['dis_opt'])
-<<<<<<< HEAD
         loaded_epoch = checkpoint['epoch']
         if checkpoint['cycle']:
             loaded_cycle = checkpoint['cycle']
@@ -209,12 +203,6 @@ if __name__ == "__main__":
         if checkpoint['gen_lr'] and checkpoint['dis_lr']:
             gen_lr = checkpoint['gen_lr'] if checkpoint['gen_lr'] > args.min_lr else args.min_lr
             dis_lr = checkpoint['dis_lr'] if checkpoint['dis_lr'] > args.min_lr else args.min_lr
-
-=======
-        loaded_epoch = checkpoint['epoch'] + 1
-#        loaded_cycle = checkpoint['cycle']
-        loaded_cycle = 0
->>>>>>> 2fb3c1593c460ca3c889c9f49a070e0cbbcf7aaf
         print("=> loaded checkpoint '{}'".format(args.save_fpath))
 
     gen_lr = gen_lr if args.load else args.learning_rate
@@ -240,8 +228,8 @@ if __name__ == "__main__":
     generator_paramters = sum(p.numel() for p in generator.parameters() if p.requires_grad)
     discriminator_parameters = sum(p.numel() for p in discriminator.parameters() if p.requires_grad)
     params = generator_paramters + discriminator_parameters
-    print("Number of parameters in GENERATOR".format(generator_paramters))
-    print("Number of parameters in DISCRIMINATOR".format(discriminator_parameters))
+    print("Number of parameters in GENERATOR: {}".format(generator_paramters))
+    print("Number of parameters in DISCRIMINATOR: {}".format(discriminator_parameters))
 
     generator = nn.DataParallel(generator)
     discriminator = nn.DataParallel(discriminator)
@@ -261,7 +249,7 @@ if __name__ == "__main__":
             dataset = load_dataset_with_glyph(args)
             if epoch == 0:
                 print("number of total cycles: {}".format(len(dataset)))
-            cycle_interval = len(dataset) // 10
+            cycle_interval = len(dataset) // 2
             for batch_idx, sample_batched in enumerate(dataset):
                 if epoch == loaded_epoch:
                     if batch_idx < loaded_cycle:
