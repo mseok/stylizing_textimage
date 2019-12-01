@@ -38,7 +38,7 @@ $ pip3 install opencv-python, pytorch, ...
 ~~~shell
 $ mkdir datasets && cd datasets
 $ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
-$ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
+$ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals_colorGrad64.tar.gz
 ~~~
 ---
 - please extract file in datasets after download .tar files
