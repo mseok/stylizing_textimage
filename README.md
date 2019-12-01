@@ -43,6 +43,22 @@ $ mkdir datasets && cd datasets
 $ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
 $ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals_colorGrad64.tar.gz
 ~~~
+### Pretrained models
+> Due to large size of our pretrained save file, we uploaded it on google drive. You should
+execute following command in main directory. **Note that this only works for LINUX system!!**
+- our google drive address: https://drive.google.com/drive/folders/1Fq3r8tweP1p2inDDrSbVr-1d-it8EwU6
+- How to download save file into shell
+    1. Select a file that is need to be downloaded and do right click.
+    2. Copy the link for sharing like https://drive.google.com/file/d/**1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq**/view?usp=sharing
+    3. Extract file ID like from above 1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq
+    4. Fill file ID in FILEID and fill download filename in FILENAME in this command: wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=**FILEID**' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=**FILEID**" -O **FILENAME** && rm -rf /tmp/cookies.txt
+- Following command represent above instructions.
+~~~shell
+$ mkdir results/ && mkdir results/selector/ && cd results/selector
+$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq" -O save_0.pth.tar && rm -rf /tmp/cookies.txt
+$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1dyLZga_a5v2934sPKKHkTVZ0EyA0zOuq' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1dyLZga_a5v2934sPKKHkTVZ0EyA0zOuq" -O save_5.pth.tar && rm -rf /tmp/cookies.txt 
+$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1AMa7I5TbgLaNlvs8DZUL29QaZNXlhSgy' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1AMa7I5TbgLaNlvs8DZUL29QaZNXlhSgy" -O save_9.pth.tar && rm -rf /tmp/cookies.txt
+~~~
 ---
 - please extract file in datasets after download .tar files
 ## Usage
