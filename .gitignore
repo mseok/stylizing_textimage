@@ -15,4 +15,5 @@ __pycache__
 *.json
 runs/*
 results_new/*
+outputs/*
 results/*
