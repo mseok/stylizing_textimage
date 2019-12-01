@@ -8,6 +8,7 @@ import shutil
 import cv2
 # for pretrained model
 import torchvision.models as models
+import glob
 
 # load models and pretrained selector network
 from models.nets import *
@@ -33,7 +34,10 @@ def make_glyph (args):
     generator = Generator (args.latent_dim)
     
     output = []
-    for path in args.pretrained_location:
+    save_fpaths = glob.glob(args.pretrained_location + '/*.pth.tar')
+    save_fpaths = [os.path.abspath(f) for f in save_fpaths]
+    exp_name = save_fpaths[0].split('/')[-2]
+    for idx, path in enumerate(save_fpaths):
         checkpoint = torch.load(path, map_location=torch.device('cpu'))
         prefix = 'module.'
         n_clip = len(prefix)
@@ -71,8 +75,9 @@ def make_glyph (args):
 
         with torch.no_grad():
             output.append(generator(source_input, glyph_input))
+        print('Generation from {}-th save file done!'.format(idx))
 
-    return torch.squeeze(torch.stack(output, dim=0))
+    return torch.squeeze(torch.stack(output, dim=0)), exp_name
 
 
 if __name__ == "__main__":
@@ -84,8 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('--pretrained_location',
                         help='location of pretrained model',
                         type=str,
-                        default='results/ckpt.pt',
-                        nargs='+')
+                        default='results/ckpt.pt')
     parser.add_argument('--output_folder',
                         help='output folder',
                         type=str,
@@ -93,8 +97,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_name',
                         help='location of output png',
                         type=str,
-                        default='test.png',
-                        nargs='+')
+                        default='test.png')
     parser.add_argument('--latent_dim',
                         help='latent vector dimension in generator',
                         type=int,
@@ -116,9 +119,10 @@ if __name__ == "__main__":
     output_dir = os.path.abspath(args.output_folder)
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-    whatwemade = make_glyph(args) # 1*3*64*(64*26)
-    for idx, opath in enumerate(args.output_name):
-       save_image(whatwemade[idx], output_dir + '/' + opath)
-       print ("Congratulations!! {} saved:)".format(opath))
+    whatwemade, expname = make_glyph(args) # 1*3*64*(64*26)
+    oname, ftype = args.output_name.split('.')
+    for idx in range(whatwemade.shape[0]):
+       save_image(whatwemade[idx], output_dir + '/' + oname + '_' + expname + '_' + str(idx) + '.' + ftype)
+       print ("Congratulations!! {} saved:)".format(oname + '_' + expname + '_' + str(idx) + '.' + ftype))
 
     

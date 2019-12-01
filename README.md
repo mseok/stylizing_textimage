@@ -28,9 +28,12 @@ $ git clone https://github.com/mseok/stylizing_textimage
 ~~~
 ### Setup
 > update and install package below
-~~~shell
-$ pip3 update
-$ pip3 install opencv-python, pytorch, ...
+- pytorch 1.3.1 with torchvision
+- CUDA 10.1
+- Seaborn
+- Matplotlib
+- OpenCV2
+- Numpy
 ~~~
 ### Datasets
 > we use MCGAN datasets, you can get these with below command you should in main directory
