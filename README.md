@@ -155,7 +155,7 @@ $ bash scripts/run_test.sh
 ## Team
 > We are team 22 in cs470, KAIST
 - Seokhyun Moon (https://github.com/mseok)
-- Jinwon Lee (??)
+- Jinwon Lee (https//github.com/grape-tasting-acid)
 - and Yunseok Choi (https://github.com/cys1805)
 
 --- 
