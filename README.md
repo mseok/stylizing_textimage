@@ -37,7 +37,7 @@ $ pip3 install opencv-python, pytorch, ...
 ### Train
 > you can easily use our *run_train.sh*
 <pre>
-run_train.sh
+scripts/run_train.sh
 <code>
 #!/bin/sh
 
@@ -63,13 +63,13 @@ python3 train/train.py --epoch $EPOCH --batch_size $BATCH_SIZE --color_path $COL
 - your training model will save automatically in results/EXPNAME !
 - if you end with setting type below
 ~~~shell
-$ bash run_train.sh
+$ bash scripts/run_train.sh
 ~~~
 
 ### Test
 > you can also easily use our *make_font.sh*
 <pre>
-make_font.sh
+scripts/make_font.sh
 <code>
 #!/bin/sh
 
@@ -90,13 +90,13 @@ python3 test/test_users.py --input_location $INPUT_LOCATION --source_character $
 - *this phase will takes really really long time.. (because of select phase)*
 - if you end with setting type below
 ~~~shell
-$ bash make_font.sh
+$ scripts/bash make_font.sh
 ~~~
 
 ### Test_non_users
 > if you can't wait select phase, follow below
 <pre>
-run_test.sh
+scripts/run_test.sh
 <code>
 #!/bin/sh
 
@@ -116,7 +116,7 @@ python3 test/test.py --input_location $INPUT_LOCATION --pretrained_location $PRE
 - you can have multiple location and output_name.
 - if you end with setting type below
 ~~~shell
-$ bash run_test.sh
+$ bash scripts/run_test.sh
 ~~~
 ---
 ## Team
