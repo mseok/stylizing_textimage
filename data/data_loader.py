@@ -87,7 +87,7 @@ class ysDataset(Dataset):
 # 64*(64*26)*3
 class ysDataset_glyph(Dataset):
     def __init__(self):
-        self.png_list = glob.glob('datasets/Capitals64/**/*.png', recursive=True)
+        self.png_list = glob.glob('datasets/Capitals64/BASE/**/*.png', recursive=True)
 
     def __len__(self):
         return len(self.png_list)
