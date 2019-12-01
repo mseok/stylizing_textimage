@@ -196,11 +196,10 @@ if __name__ == "__main__":
         discriminator.load_state_dict(adapted_dis)
         # dis_optimizer.load_state_dict(checkpoint['dis_opt'])
         loaded_epoch = checkpoint['epoch']
-        if checkpoint['cycle']:
-            loaded_cycle = checkpoint['cycle']
-        if checkpoint['losses']:
+        loaded_cycle = checkpoint['cycle'] if 'cycle' in checkpoint.keys() else 0
+        if 'losses' in checkpoint.keys():
             loaded_total_loss = checkpoint['losses']
-        if checkpoint['gen_lr'] and checkpoint['dis_lr']:
+        if 'gen_lr' in checkpoint.keys() and 'dis_lr' in checkpoint.keys():
             gen_lr = checkpoint['gen_lr'] if checkpoint['gen_lr'] > args.min_lr else args.min_lr
             dis_lr = checkpoint['dis_lr'] if checkpoint['dis_lr'] > args.min_lr else args.min_lr
         print("=> loaded checkpoint '{}'".format(args.save_fpath))
