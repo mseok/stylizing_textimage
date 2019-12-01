@@ -116,8 +116,8 @@ if __name__ == "__main__":
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
     print(whatwemade.shape)
     #whatwemade = torch.squeeze(whatwemade) #.permute(1,2,0) # 64*(64*26)*3
-    for opath in args.output_name:
-       save_image (whatwemade, opath)
+    for idx, opath in enumerate(args.output_name):
+       save_image (whatwemade[idx], opath)
        #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
        # plt.imsave ('output.png', whatwemade.numpy())
        print ("Congratulations!! {} saved:)".format(opath))
