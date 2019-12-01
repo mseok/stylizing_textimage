@@ -6,12 +6,14 @@
 
 - [Introduction](#introduction)
 - [Installation](#installation)
+    - [Clone](#Clone)
+    - [Setup](#Setup)
+    - [Pretrained models](#Pretrained models)
 - [Usage](#Usage)
     - [Train](#Train)
     - [Test](#Test)
     - [Test_non_users](#Test_non_users)
 - [Team](#team)
-- [FAQ](#FAQ)
 - [License](#license)
 
 ---
@@ -49,9 +51,12 @@ execute following command in main directory. **Note that this only works for LIN
 - our google drive address: https://drive.google.com/drive/folders/1Fq3r8tweP1p2inDDrSbVr-1d-it8EwU6
 - How to download save file into shell
     1. Select a file that is need to be downloaded and do right click.
-    2. Copy the link for sharing like https://drive.google.com/file/d/**1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq**/view?usp=sharing
+    2. Copy the link for sharing like https://drive.google.com/file/d/1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq/view?usp=sharing
     3. Extract file ID like from above 1fTX1wt_daS1xWJbRIdq6GkJiWY1EEzoq
-    4. Fill file ID in FILEID and fill download filename in FILENAME in this command: wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=**FILEID**' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=**FILEID**" -O **FILENAME** && rm -rf /tmp/cookies.txt
+    4. Fill file ID in FILEID and fill download filename in FILENAME in this command: 
+~~~shell
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=FILEID' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=FILEID" -O FILENAME && rm -rf /tmp/cookies.txt
+~~~
 - Following command represent above instructions.
 ~~~shell
 $ mkdir results/ && mkdir results/selector/ && cd results/selector
@@ -152,11 +157,7 @@ $ bash scripts/run_test.sh
 - Seokhyun Moon (https://github.com/mseok)
 - Jinwon Lee (??)
 - and Yunseok Choi (https://github.com/cys1805)
---- 
-## FAQ
 
-- **question?**
-    - answer!  
 --- 
 ## License
 
