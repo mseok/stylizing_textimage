@@ -104,9 +104,9 @@ scripts/run_test.sh
 #!/bin/sh
 
 INPUT_LOCATION="datasets/Capitals_colorGrad64/train/akaPotsley.0.2.png"
-PRETRAINED_LOCATION='results/selector/save_0.pth.tar results/selector/save_1.pth.tar results/selector/save_2.pth.tar '
+PRETRAINED_LOCATION='results/selector/'
 OUTPUT_FOLDER='outputs/'
-OUTPUT_NAME='output_test_0.png output_test_1.png output_test_2.png'
+OUTPUT_NAME='output.png'
 LATENT_DIM=1024
 COLOR_PATH="datasets/Capitals_colorGrad64/train"
 NONCOLOR_PATH="datasets/Capitals64/BASE"
@@ -116,7 +116,8 @@ python3 test/test.py --input_location $INPUT_LOCATION --pretrained_location $PRE
 </code></pre>
 - usage is almost same with test
 - but this require the images in datasets/Capitals_colorGrad64/
-- you can have multiple location and output_name.
+- you can have generate outputs using all savefiles stored in pretrained_location
+- output file name is automatically saved as output_{exp anme}_{save_file_number}.png
 - if you end with setting type below
 ~~~shell
 $ bash scripts/run_test.sh
@@ -125,7 +126,7 @@ $ bash scripts/run_test.sh
 ## Team
 > We are team 22 in cs470, KAIST
 - Seokhyun Moon (https://github.com/mseok)
-- Jinwon Lee (??)
+- Jinwon Lee (https://github.com/grape-tasting-acid)
 - and Yunseok Choi (https://github.com/cys1805)
 --- 
 ## FAQ
