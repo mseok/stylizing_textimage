@@ -78,12 +78,13 @@ def get_layer_info (pretrained_model, content_img):
     pretrained_model = copy.deepcopy(pretrained_model)
 
 # source input : 1*3*64*(64*5), b*3*64*(64*5) -> output: b*1
-def _get_loss (source_input, glyph):
+def _get_loss (source_input, glyph, gpu=False):
+    device = torch.device("cuda" if torch.cuda.is_available() and gpu else "cpu")
     # print (source_input.shape, '\t', glyph.shape)    
     b = glyph.size()[0]
     loss_list = []
     for idx in range(b):
-        pt = models.vgg16(pretrained=True).features.eval()
+        pt = models.vgg16(pretrained=True).features.eval().to(device)
         content_selector, content_losses = transfer_model(pt, torch.unsqueeze(glyph[idx,:,:,:], 0))
         content_selector(source_input)
         loss = 0
@@ -106,7 +107,7 @@ def select (args, source_input, input_size=5, source_character='abcde'):
             glyph_list.append(data[:,:,:,64*(p-1):64*p])
         temp_glyph = torch.cat (glyph_list, dim=3)
 
-        temp_l = _get_loss (source_input, temp_glyph.to(device))
+        temp_l = _get_loss (source_input, temp_glyph.to(device), gpu=args.gpu)
 
         if min(temp_l) < min_loss:
             min_idx = temp_l.index(min(temp_l))
