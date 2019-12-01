@@ -94,11 +94,12 @@ def _get_loss (source_input, glyph):
 
 # input : 1*3*64*(64*5) // style
 # output : 1*3*64*(64*26) // glyph
-def select (args, source_input, input_size=5, source_character='tlqkf'):
+def select (args, source_input, input_size=5, source_character='abcde'):
     device = torch.device("cuda" if torch.cuda.is_available() and args.gpu else "cpu")
     min_loss = 99999999
     temp_l = []
-    for _, data in enumerate(load_only_glyph(args.batch_size)):
+    for _, data in enumerate(load_only_glyph(args.batch_size)): # data: b*64*(64*26)*3
+        data = data.permute(0,3,1,2)
         position_list = alphabet_position(source_character)
         glyph_list = []
         for p in position_list:

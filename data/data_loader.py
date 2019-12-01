@@ -80,10 +80,11 @@ class ysDataset(Dataset):
         if self.transform:
             sample = self.transform(sample)
 
-        return sample
+        return sample # 64*(64*26)*3
 
 # ysDataset_glyph
 # return glyph_data for selector
+# 64*(64*26)*3
 class ysDataset_glyph(Dataset):
     def __init__(self):
         self.png_list = glob.glob('datasets/Capitals64/**/*.png', recursive=True)
@@ -100,11 +101,9 @@ class ysDataset_glyph(Dataset):
         if (len(data.shape) == 2):
             data = np.stack((data,)*3, axis=-1) # gray -> rgb
 
-        if self.transform:
-            data = self.transform(data)
-
         return data
 
+# b* 64*(64*26)*3
 def load_only_glyph (batch_size):
     data_only_glyph = ysDataset_glyph ()
     glyph_loader = DataLoader (

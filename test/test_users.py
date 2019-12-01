@@ -31,21 +31,16 @@ def make_glyph_selector (args):
 
     # generator initialize
     generator = Generator (args.latent_dim).to(device)
-
     checkpoint = torch.load(args.pretrained_location, map_location=torch.device('cpu'))
-    prefix = 'module.'
-    n_clip = len(prefix)
-    gen = checkpoint['gen_model']
-    adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
-    generator.load_state_dict(adapted_gen)
+    generator.load_state_dict(checkpoint['gen_model'])
 
-    source_input = plt.imread(args.input_location) # 64*(64*5)*3
+    source_input = plt.imread(args.input_location)[:,:,:3] # 64*(64*5)*3
     if (len(source_input.shape)==2):
         source_input = np.stack((source_input,)*3, axis=-1) # gray -> rgb
     source_input = torch.from_numpy(source_input).float() # 64*(64*5)*3
     source_input = torch.unsqueeze(source_input.permute(2,0,1), 0).to(device) # 1*3*64*(64*5)
 
-    glyph_input = select (args.batch_size, source_input, input_size=5, source_charater=args.source_character) # 1*3*64*(64*26)
+    glyph_input = select (args, source_input, input_size=5, source_character=args.source_character) # 1*3*64*(64*26)
 
     with torch.no_grad():
         return generator (source_input, glyph_input)
@@ -82,8 +77,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     whatwemade = make_glyph_selector(args) # 1*3*64*(64*26)
-    print(whatwemade.shape)
-
     directory = 'outputs/'
     if not os.path.exists(directory):
         os.makedirs(directory)
