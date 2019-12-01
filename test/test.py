@@ -89,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_folder',
                         help='output folder',
                         type=str,
-                        default='../output/')
+                        default='../outputs/')
     parser.add_argument('--output_name',
                         help='location of output png',
                         type=str,
@@ -113,13 +113,12 @@ if __name__ == "__main__":
                         default=1)
     args = parser.parse_args()
 
+    output_dir = os.path.abspath(args.output_folder)
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
     whatwemade = make_glyph(args) # 1*3*64*(64*26)
-    print(whatwemade.shape)
-    #whatwemade = torch.squeeze(whatwemade) #.permute(1,2,0) # 64*(64*26)*3
     for idx, opath in enumerate(args.output_name):
-       save_image (whatwemade[idx], opath)
-       #cv2.imwrite (args.output_folder + args.output_name, whatwemade.numpy())
-       # plt.imsave ('output.png', whatwemade.numpy())
+       save_image(whatwemade[idx], output_dir + '/' + opath)
        print ("Congratulations!! {} saved:)".format(opath))
 
     

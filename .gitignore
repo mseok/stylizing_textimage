@@ -1,4 +1,3 @@
-outputs/*
 models/__pycache__/*
 *.docx
 *.pdf
@@ -14,6 +13,4 @@ datasets/*
 __pycache__
 *.json
 runs/*
-results_new/*
-outputs/*
 results/*

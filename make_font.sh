@@ -2,7 +2,7 @@
 
 INPUT_LOCATION="pocari.png"
 SOURCE_CHARACTER='pocar'
-PRETRAINED_LOCATION='results/test/save_8_2000.pt'
+PRETRAINED_LOCATION='results/selector/save_9.pth.tar'
 OUTPUT_NAME='pocar_font.png'
 BATCH_SIZE=512
 LATENT_DIM=1024
