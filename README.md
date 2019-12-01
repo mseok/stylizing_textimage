@@ -33,14 +33,15 @@ $ pip3 update
 $ pip3 install opencv-python, pytorch, ...
 ~~~
 ### Datasets
-> we use MCGAN datasets, you can get these with below command
+> we use MCGAN datasets, you can get these with below command you should in main directory
 
 ~~~shell
+$ mkdir datasets && cd datasets
 $ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
 $ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
 ~~~
 ---
-- please extract file on datasets/ directory
+- please extract file in datasets after download .tar files
 ## Usage
 ### Train
 > you can easily use our *run_train.sh*
