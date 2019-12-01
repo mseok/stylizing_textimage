@@ -33,11 +33,11 @@ def make_glyph (args):
     generator = Generator (args.latent_dim)
 
     checkpoint = torch.load(args.pretrained_location, map_location=torch.device('cpu'))
-    prefix = 'module.'
-    n_clip = len(prefix)
+    #prefix = 'module.'
+    #n_clip = len(prefix)
     gen = checkpoint['gen_model']
-    adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
-    generator.load_state_dict(adapted_gen)
+    #adapted_gen = {k[n_clip:]: v for k, v in gen.items() if k.startswith(prefix)}
+    generator.load_state_dict(gen)
 
     target_input = plt.imread(args.input_location) # 64*(64*5)*3
     if (len(target_input.shape)==2):
