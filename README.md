@@ -34,7 +34,7 @@ $ pip3 install opencv-python, pytorch, ...
 ~~~
 ### Datasets
 > we use MCGAN datasets, you can get these with below command
-</pre>
+<pre>
 in datasets/
 <code>shell
 $ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
