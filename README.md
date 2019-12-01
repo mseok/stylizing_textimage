@@ -32,7 +32,16 @@ $ git clone https://github.com/mseok/stylizing_textimage
 $ pip3 update
 $ pip3 install opencv-python, pytorch, ...
 ~~~
+### Datasets
+> we use MCGAN datasets, you can get these with below command
+</pre>
+in datasets/
+<code>shell
+$ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
+$ wget https://people.eecs.berkeley.edu/\~sazadi/MCGAN/datasets/Capitals64.tar.gz
+</code></pre>
 ---
+- please extract file on datasets/ directory
 ## Usage
 ### Train
 > you can easily use our *run_train.sh*
